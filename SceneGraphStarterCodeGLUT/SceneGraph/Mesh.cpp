@@ -4,7 +4,7 @@ vec3 Face::getNormal()
 {
 	vec3 normal = glm::cross((p2 - p1), (p3 - p1));
 	// hardcoded the eye position and light position
-	if((dot(vec3(0, 5, 10), p1) < 0)/* && (dot(vec3(2.0, 0.0, 2.0), p1) < 0)*/)
+	if((dot(normal, vec3(0, 5, 10) - p1) < 0) && (dot(normal, vec3(2.0, 0.0, 2.0) - p1) < 0))
 		normal = -normal;
 	normal = glm::normalize(normal);
 	return normal;
@@ -47,7 +47,7 @@ void Mesh::setColor(float red, float green, float blue)
 
 void Mesh::draw(mat4 modelMatrix, DisplayClass* displayClass)
 {
-	modelMatrix = translate(modelMatrix, vec3(0.0f, height, 0.0f));
+	modelMatrix = translate(modelMatrix, vec3(0.0f, height / 2.0f, 0.0f));
 
 	glBindBuffer(GL_ARRAY_BUFFER, displayClass->vbo);
 	glBufferData(GL_ARRAY_BUFFER, nFaces * 3 * 4 * sizeof(float), vertices, GL_STATIC_DRAW);
@@ -127,24 +127,32 @@ bool Extrusion::isConvex()
 {
 	for(unsigned int i = 0; i < nPoints - 1; ++i)
 	{
-		if(basePoints[i].x * basePoints[i + 1].y - basePoints[i].y * basePoints[i + 1].x > 0)
+		/*if(basePoints[i + 1].x * basePoints[i].z - basePoints[i].x * basePoints[i + 1].z > 0)
 		{
 			// basePoints are counter-clockwise
 			// reverse the order
-			vec3* tempPoints;
+			vec3* tempPoints = new vec3[nPoints];
 			for(unsigned int j = 0; j < nPoints; ++j)
 			{
 				tempPoints[j] = basePoints[nPoints - 1 - j];
 			}
 			basePoints = tempPoints;
-		}
-
-		if(basePoints[i].x * basePoints[i + 1].y - basePoints[i].y * basePoints[i + 1].x < 0)
+		}*/
+		vec3 u = basePoints[i + 1] - basePoints[i];
+		vec3 v = basePoints[i + 2] - basePoints[i + 1];
+		if(v.x * u.z - u.x * v.z < 0)
 		{
 			// basePoints are clockwise
-			for(unsigned int j = i + 1; j < nPoints - 1; ++j)
+			vec3 uu = basePoints[0] - basePoints[nPoints - 1];
+			vec3 vv = basePoints[1] - basePoints[0];
+			if(vv.x * uu.z - uu.x * vv.z > 0)
+				return false;
+			for(unsigned int j = i + 1; j < nPoints - 2; ++j)
 			{
-				if(basePoints[j].x * basePoints[j + 1].y - basePoints[j].y * basePoints[j + 1].x > 0)
+				u = basePoints[j + 1] - basePoints[j];
+				v = basePoints[j + 2] - basePoints[j + 1];
+
+				if(v.x * u.z - u.x * v.z > 0)
 					return false;
 			}
 		}

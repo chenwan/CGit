@@ -34,7 +34,7 @@ public:
 	unsigned int nFaces; // the number of faces
 	Face* faces;
 	vec3* points; // unique vertices array
-	float* vertices; // the actual vertices array stores 3 vertices per face
+	float* vertices; // the actual vertices array that stores 3 vertices per face
 	float* colors;
 	float* normals;
 	unsigned short* indices;
