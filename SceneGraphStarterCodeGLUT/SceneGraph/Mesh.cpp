@@ -1,4 +1,5 @@
 #include "Mesh.h"
+#include <iostream>
 
 vec3 Face::getNormal()
 {
@@ -86,29 +87,32 @@ void Mesh::draw(mat4 modelMatrix, DisplayClass* displayClass)
 Extrusion::Extrusion()
 {}
 
-Extrusion::Extrusion(float length, int numPoints, vec3* basePoints)
+Extrusion::Extrusion(float l, int numPoints, vec3* base)
 {
-	this->length = length;
+	this->length = l;
 	height = length;
 	this->nPoints = numPoints;
 	// should check if the basePoints are clockwise, if not reverse the order
-	this->basePoints = basePoints;
+	basePoints = new vec3[nPoints];
+	for(unsigned int i = 0; i < nPoints; ++i)
+	{
+		basePoints[i] = base[i];
+	}
 
 	if(isConvex())
 	{
 		nVertices = nPoints * 2 + 2;
-		nFaces = nPoints * 4;
+		nFaces = (nPoints - 1) * 4;
 	}
 	else
 	{
 		nVertices = nPoints * 2;
-		nFaces = nPoints * 2;
+		nFaces = (nPoints - 1) * 2;
 	}
-
-	vertices = new float[nVertices * 4];
-	colors = new float[nVertices * 3];
+	vertices = new float[nFaces * 3 * 4];
+	colors = new float[nFaces * 3 * 3];
 	faces = new Face[nFaces];
-	normals = new float[nVertices * 4];
+	normals = new float[nFaces * 3 * 4];
 	indices = new unsigned short[nFaces * 3];
 
 	generateSides();
@@ -116,7 +120,7 @@ Extrusion::Extrusion(float length, int numPoints, vec3* basePoints)
 	if(isConvex())
 		generateEndcaps();
 
-	//generateNormals();
+	generateNormals();
 	setColor(0.6f, 0.6f, 0.6f);
 }
 
@@ -125,7 +129,7 @@ Extrusion::~Extrusion()
 
 bool Extrusion::isConvex()
 {
-	for(unsigned int i = 0; i < nPoints - 1; ++i)
+	for(unsigned int i = 0; i < nPoints - 2; ++i)
 	{
 		/*if(basePoints[i + 1].x * basePoints[i].z - basePoints[i].x * basePoints[i + 1].z > 0)
 		{
@@ -138,18 +142,19 @@ bool Extrusion::isConvex()
 			}
 			basePoints = tempPoints;
 		}*/
-		vec3 u = basePoints[i + 1] - basePoints[i];
+		vec3 u = basePoints[i] - basePoints[i + 1];
 		vec3 v = basePoints[i + 2] - basePoints[i + 1];
 		if(v.x * u.z - u.x * v.z < 0)
 		{
 			// basePoints are clockwise
-			vec3 uu = basePoints[0] - basePoints[nPoints - 1];
+			vec3 uu = basePoints[nPoints - 2] - basePoints[0];
 			vec3 vv = basePoints[1] - basePoints[0];
+			//std::cout<<vv.x * uu.z - uu.x * vv.z;
 			if(vv.x * uu.z - uu.x * vv.z > 0)
 				return false;
 			for(unsigned int j = i + 1; j < nPoints - 2; ++j)
 			{
-				u = basePoints[j + 1] - basePoints[j];
+				u = basePoints[j] - basePoints[j + 1];
 				v = basePoints[j + 2] - basePoints[j + 1];
 
 				if(v.x * u.z - u.x * v.z > 0)

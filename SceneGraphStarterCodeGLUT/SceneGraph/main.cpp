@@ -107,6 +107,7 @@ void parseConfigFile(string fileName)
 				for(unsigned int i = 0; i < numPoints; ++i)
 				{
 					readDatFile>>extrusion_basePoints[i].x>>extrusion_basePoints[i].z;
+					extrusion_basePoints[i].y = 0.0f;
 				}
 				geometry = new Extrusion(extrusion_length, numPoints, extrusion_basePoints);
 				readDatFile.clear();
@@ -125,6 +126,7 @@ void parseConfigFile(string fileName)
 				for(unsigned int i = 0; i < numPoints; ++i)
 				{
 					readDatFile>>surfrev_polylinePoints[i].x>>surfrev_polylinePoints[i].y;
+					surfrev_polylinePoints[i].z = 0.0f;
 					if(surfrev_polylinePoints[i].x < 0)
 					{
 						cerr<<"x-coordinate of the points of the polyline cannot be negative."<<endl;
