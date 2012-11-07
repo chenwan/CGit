@@ -4,7 +4,7 @@ vec3 Face::getNormal()
 {
 	vec3 normal = glm::cross((p2 - p1), (p3 - p1));
 	// hardcoded the eye position and light position
-	if((dot(vec3(0, 5, 10), p1) < 0) && (dot(vec3(2.0, 0.0, 2.0), p1) < 0))
+	if((dot(vec3(0, 5, 10), p1) < 0)/* && (dot(vec3(2.0, 0.0, 2.0), p1) < 0)*/)
 		normal = -normal;
 	normal = glm::normalize(normal);
 	return normal;
@@ -18,18 +18,26 @@ Mesh::~Mesh()
 
 void Mesh::generateNormals()
 {
-	for(unsigned int i = 0; i < nVertices; ++i)
+	for(unsigned int i = 0; i < nFaces; ++i)
 	{
-		normals[i * 4 + 0] = faces[i].getNormal().x;
-		normals[i * 4 + 1] = faces[i].getNormal().y;
-		normals[i * 4 + 2] = faces[i].getNormal().z;
-		normals[i * 4 + 3] = 0.0f;
+		normals[i * 12 + 0] = normals[i * 12 + 4] = normals[i * 12 + 8] = faces[i].getNormal().x;
+		normals[i * 12 + 1] = normals[i * 12 + 5] = normals[i * 12 + 9] = faces[i].getNormal().y;
+		normals[i * 12 + 2] = normals[i * 12 + 6] = normals[i * 12 + 10] = faces[i].getNormal().z;
+		normals[i * 12 + 3] = normals[i * 12 + 7] = normals[i * 12 + 11] = 0.0f;
+	}
+}
+
+void Mesh::generateIndices()
+{
+	for(unsigned int i = 0; i < nFaces * 3; ++i)
+	{
+		indices[i] = i;
 	}
 }
 
 void Mesh::setColor(float red, float green, float blue)
 {
-	for(unsigned int i = 0; i < nVertices * 3; i += 3)
+	for(unsigned int i = 0; i < nFaces * 3 * 3; i += 3)
 	{
 		colors[i] = red;
 		colors[i+1] = green;
@@ -40,14 +48,15 @@ void Mesh::setColor(float red, float green, float blue)
 void Mesh::draw(mat4 modelMatrix, DisplayClass* displayClass)
 {
 	modelMatrix = translate(modelMatrix, vec3(0.0f, height, 0.0f));
+
 	glBindBuffer(GL_ARRAY_BUFFER, displayClass->vbo);
-	glBufferData(GL_ARRAY_BUFFER, nVertices * 4 * sizeof(float), vertices, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, nFaces * 3 * 4 * sizeof(float), vertices, GL_STATIC_DRAW);
 
 	glBindBuffer(GL_ARRAY_BUFFER, displayClass->cbo);
-	glBufferData(GL_ARRAY_BUFFER, nVertices * 3 * sizeof(float), colors, GL_STREAM_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, nFaces * 3 * 3 * sizeof(float), colors, GL_STREAM_DRAW);
 
 	glBindBuffer(GL_ARRAY_BUFFER, displayClass->nbo);
-	glBufferData(GL_ARRAY_BUFFER, nVertices * 4 * sizeof(float), normals, GL_STATIC_DRAW); 
+	glBufferData(GL_ARRAY_BUFFER, nFaces * 3 * 4 * sizeof(float), normals, GL_STATIC_DRAW); 
 
 	glEnableVertexAttribArray(displayClass->positionLocation);
 	glEnableVertexAttribArray(displayClass->colorLocation);
@@ -268,17 +277,18 @@ Surfrev::Surfrev(int numSlices, int numPoints, vec3* polylinePoints)
 		nFaces += numSlices;
 	}
 	*/
-	points = new vec3[nVertices];
-	vertices = new float[nVertices * 4];
-	colors = new float[nVertices * 3];
+	points = new vec3[nVertices + nPoints];
+	vertices = new float[nFaces * 3 * 4];
+	colors = new float[nFaces * 3 * 3];
 	faces = new Face[nFaces];
-	normals = new float[nVertices * 4];
+	normals = new float[nFaces * 3 * 4];
 	indices = new unsigned short[nFaces * 3];
 
 	generateSides();
 	// if hasEndcap
 	//generateEndcaps();
 	generateNormals();
+	generateIndices();
 	setColor(1.0f, 0.2f, 0.2f);
 }
 
@@ -290,52 +300,57 @@ void Surfrev::generateSides()
 	// side vertices
 	for(unsigned int i = 0; i < nPoints; ++i)
 	{
-		for(unsigned int j = 0; j < numSlices; ++j)
+		for(unsigned int j = 0; j < numSlices + 1; ++j)
 		{
-			vertices[(i * numSlices + j) * 4 + 0] = cos(j * (360.0f / (float)numSlices) * PI / 180.0f) * polylinePoints[i].x;
-			vertices[(i * numSlices + j) * 4 + 1] = polylinePoints[i].y;
-			vertices[(i * numSlices + j) * 4 + 2] = sin(j * (360.0f / (float)numSlices) * PI / 180.0f) * polylinePoints[i].x;
-			vertices[(i * numSlices + j) * 4 + 3] = 1.0f;
-
-			points[i * numSlices + j] = vec3(vertices[(i * numSlices + j) * 4 + 0], vertices[(i * numSlices + j) * 4 + 1], vertices[(i * numSlices + j) * 4 + 2]);
+			points[i * numSlices + j] = vec3(cos(j * (360.0f / (float)numSlices) * PI / 180.0f) * polylinePoints[i].x, polylinePoints[i].y, sin(j * (360.0f / (float)numSlices) * PI / 180.0f) * polylinePoints[i].x);
 		}
 	}
 	// side faces
-	for(unsigned int i = 0; i < nPoints; ++i)
+	for(unsigned int i = 0; i < nPoints - 1; ++i)
 	{
-		for(unsigned int j = 0; j < numSlices - 1; ++j)
+		for(unsigned int j = 0; j < numSlices; ++j)
 		{
 			faces[(i * numSlices + j) * 2].p1 = points[i * numSlices + j + 0];
 			faces[(i * numSlices + j) * 2].p2 = points[i * numSlices + j + 1];
-			faces[(i * numSlices + j) * 2].p3 = points[i * (numSlices + 1) + j + 0];
+			faces[(i * numSlices + j) * 2].p3 = points[i * (numSlices + 1) + j + 1];
 
 			faces[(i * numSlices + j) * 2 + 1].p1 = points[i * numSlices + j + 1];
-			faces[(i * numSlices + j) * 2 + 1].p2 = points[i * (numSlices + 1) + j + 1];
-			faces[(i * numSlices + j) * 2 + 1].p3 = points[i * (numSlices + 1) + j + 0];
+			faces[(i * numSlices + j) * 2 + 1].p2 = points[i * (numSlices + 1) + j + 2];
+			faces[(i * numSlices + j) * 2 + 1].p3 = points[i * (numSlices + 1) + j + 1];
 
-			indices[(i * numSlices + j) * 6 + 0] = i * numSlices + j + 0;
+			/*indices[(i * numSlices + j) * 6 + 0] = i * numSlices + j + 0;
 			indices[(i * numSlices + j) * 6 + 1] = i * numSlices + j + 1;
-			indices[(i * numSlices + j) * 6 + 2] = i * (numSlices + 1) + j + 0;
+			indices[(i * numSlices + j) * 6 + 2] = i * (numSlices + 1) + j + 1;
 
 			indices[(i * numSlices + j) * 6 + 3] = i * numSlices + j + 1;
-			indices[(i * numSlices + j) * 6 + 4] = i * (numSlices + 1) + j + 1;
-			indices[(i * numSlices + j) * 6 + 5] = i * (numSlices + 1) + j + 0;
+			indices[(i * numSlices + j) * 6 + 4] = i * (numSlices + 1) + j + 2;
+			indices[(i * numSlices + j) * 6 + 5] = i * (numSlices + 1) + j + 1;*/
+
+			vertices[(i * numSlices + j) * 24 + 0] = faces[(i * numSlices + j) * 2].p1.x;
+			vertices[(i * numSlices + j) * 24 + 1] = faces[(i * numSlices + j) * 2].p1.y;
+			vertices[(i * numSlices + j) * 24 + 2] = faces[(i * numSlices + j) * 2].p1.z;
+			vertices[(i * numSlices + j) * 24 + 3] = 1.0f;
+			vertices[(i * numSlices + j) * 24 + 4] = faces[(i * numSlices + j) * 2].p2.x;
+			vertices[(i * numSlices + j) * 24 + 5] = faces[(i * numSlices + j) * 2].p2.y;
+			vertices[(i * numSlices + j) * 24 + 6] = faces[(i * numSlices + j) * 2].p2.z;
+			vertices[(i * numSlices + j) * 24 + 7] = 1.0f;
+			vertices[(i * numSlices + j) * 24 + 8] = faces[(i * numSlices + j) * 2].p3.x;
+			vertices[(i * numSlices + j) * 24 + 9] = faces[(i * numSlices + j) * 2].p3.y;
+			vertices[(i * numSlices + j) * 24 + 10] = faces[(i * numSlices + j) * 2].p3.z;
+			vertices[(i * numSlices + j) * 24 + 11] = 1.0f;
+			vertices[(i * numSlices + j) * 24 + 12] = faces[(i * numSlices + j) * 2 + 1].p1.x;
+			vertices[(i * numSlices + j) * 24 + 13] = faces[(i * numSlices + j) * 2 + 1].p1.y;
+			vertices[(i * numSlices + j) * 24 + 14] = faces[(i * numSlices + j) * 2 + 1].p1.z;
+			vertices[(i * numSlices + j) * 24 + 15] = 1.0f;
+			vertices[(i * numSlices + j) * 24 + 16] = faces[(i * numSlices + j) * 2 + 1].p2.x;
+			vertices[(i * numSlices + j) * 24 + 17] = faces[(i * numSlices + j) * 2 + 1].p2.y;
+			vertices[(i * numSlices + j) * 24 + 18] = faces[(i * numSlices + j) * 2 + 1].p2.z;
+			vertices[(i * numSlices + j) * 24 + 19] = 1.0f;
+			vertices[(i * numSlices + j) * 24 + 20] = faces[(i * numSlices + j) * 2 + 1].p3.x;
+			vertices[(i * numSlices + j) * 24 + 21] = faces[(i * numSlices + j) * 2 + 1].p3.y;
+			vertices[(i * numSlices + j) * 24 + 22] = faces[(i * numSlices + j) * 2 + 1].p3.z;
+			vertices[(i * numSlices + j) * 24 + 23] = 1.0f;
 		}
-		faces[(i * numSlices + numSlices - 1) * 2].p1 = points[i * numSlices + numSlices - 1 + 0];
-		faces[(i * numSlices + numSlices - 1) * 2].p2 = points[i * numSlices + 0];
-		faces[(i * numSlices + numSlices - 1) * 2].p3 = points[i * (numSlices + 1) + 0];
-
-		faces[(i * numSlices + numSlices - 1) * 2 + 1].p1 = points[i * numSlices + numSlices - 1 + 1];
-		faces[(i * numSlices + numSlices - 1) * 2 + 1].p2 = points[i * (numSlices + 1) + 1];
-		faces[(i * numSlices + numSlices - 1) * 2 + 1].p3 = points[i * (numSlices + 1) + 0];
-
-		indices[(i * numSlices + numSlices - 1) * 6 + 0] = i * numSlices + numSlices - 1 + 0;
-		indices[(i * numSlices + numSlices - 1) * 6 + 1] = i * numSlices + 0;
-		indices[(i * numSlices + numSlices - 1) * 6 + 2] = i * (numSlices + 1) + 0;
-
-		indices[(i * numSlices + numSlices - 1) * 6 + 3] = i * numSlices + numSlices - 1 + 1;
-		indices[(i * numSlices + numSlices - 1) * 6 + 4] = i * (numSlices + 1) + 1;
-		indices[(i * numSlices + numSlices - 1) * 6 + 5] = i * (numSlices + 1) + 0;
 	}
 }
 
