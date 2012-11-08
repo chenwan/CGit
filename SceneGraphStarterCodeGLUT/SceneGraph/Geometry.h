@@ -13,8 +13,8 @@ class Geometry
 public:
 	Geometry();
 	~Geometry();
-	void setColor(vec3 color);
 
+	virtual void setColor(vec3 color){};
 	virtual void draw(mat4 modelMatrix, DisplayClass* displayClass){};
 
 public:

@@ -67,6 +67,7 @@ void Node::InitNode(Geometry* Geometry)
 	zScale = Geometry->zScale;
 
 	m_Transformation = mat4(1.0f);
+	// These are local transformations
 	//m_Transformation = translate(m_Transformation, vec3(xTranslation, yTranslation, zTranslation));
 	//m_Transformation = rotate(m_Transformation, yRotation, vec3(0, 1, 0));
 	//m_Transformation = scale(m_Transformation, vec3(xScale, yScale, zScale));

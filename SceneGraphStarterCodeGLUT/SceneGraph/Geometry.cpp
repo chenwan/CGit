@@ -19,10 +19,3 @@ Geometry::Geometry()
 Geometry::~Geometry()
 {
 }
-
-void Geometry::setColor(vec3 color)
-{
-	red = color.r;
-	green = color.g;
-	blue = color.b;
-}

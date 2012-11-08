@@ -49,9 +49,9 @@ void parseConfigFile(string fileName)
 	readFile>>xSize>>zSize>>numItems;
 
 	Floor* floor = new Floor(xSize, zSize);
-	floor->red = 0.8f;
-	floor->green = 0.8f;
-	floor->blue = 0.5f;
+	floor->red = 0.0f;
+	floor->green = 1.0f;
+	floor->blue = 1.0f;
 	Node* root = new Node(floor);
 	sceneGraph->addNode(root);
 	sceneGraph->currentNode = root;
@@ -202,7 +202,7 @@ void keypress(unsigned char key, int x, int y) {
 		sceneGraph->previousNode->color = sceneGraph->previousNode->tColor;
 		sceneGraph->currentNode = sceneGraph->nextNode(sceneGraph->currentNode);
 		sceneGraph->currentNode->tColor = sceneGraph->currentNode->color;
-		sceneGraph->currentNode->color = vec3(0.8, 0.8, 0.8);
+		sceneGraph->currentNode->color = vec3(1.0, 1.0, 1.0);
 		break;
 	case 'a': // translate the selected node (and by nature of the scene graph, its children) 
 		      // along the negative x-axis half a unit

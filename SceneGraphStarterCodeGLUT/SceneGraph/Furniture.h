@@ -13,6 +13,7 @@ public:
 	void initTransformations();
 
 	void draw(mat4 modelMatrix, DisplayClass* displayClass);
+	void setColor(vec3 color);
 
 public:
 	std::vector<Primitive*> primitives;

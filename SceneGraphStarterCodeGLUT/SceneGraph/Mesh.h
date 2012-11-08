@@ -24,7 +24,7 @@ public:
 	void generateEndcaps();
 	void generateNormals();
 	void generateIndices();
-	void setColor(float red, float green, float blue);
+	void setColor(vec3 color);
 
 	void draw(mat4 modelMatrix, DisplayClass* displayClass);
 

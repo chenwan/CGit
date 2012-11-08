@@ -19,6 +19,13 @@ void Furniture::draw(mat4 modelMatrix, DisplayClass* displayClass)
 	}
 }
 
+void Furniture::setColor(vec3 color)
+{
+	red = color.r;
+	green = color.g;
+	blue = color.b;
+}
+
 Floor::Floor()
 {
 	Box* floor = new Box();
