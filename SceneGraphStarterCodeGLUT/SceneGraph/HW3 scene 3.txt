@@ -1,7 +1,7 @@
 3 3 1
 
 mesh
-testsurfrev1.dat
+testsurfrev2.dat
 bricks.jpg
 0 0
 0

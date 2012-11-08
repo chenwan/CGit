@@ -48,7 +48,7 @@ void Mesh::setColor(float red, float green, float blue)
 
 void Mesh::draw(mat4 modelMatrix, DisplayClass* displayClass)
 {
-	modelMatrix = translate(modelMatrix, vec3(0.0f, height / 2.0f, 0.0f));
+	//modelMatrix = translate(modelMatrix, vec3(0.0f, height / 2.0f, 0.0f));
 
 	glBindBuffer(GL_ARRAY_BUFFER, displayClass->vbo);
 	glBufferData(GL_ARRAY_BUFFER, nFaces * 3 * 4 * sizeof(float), vertices, GL_STATIC_DRAW);
@@ -102,12 +102,12 @@ Extrusion::Extrusion(float l, int numPoints, vec3* base)
 	if(isConvex())
 	{
 		nVertices = nPoints * 2 + 2;
-		nFaces = (nPoints - 1) * 4;
+		nFaces = nPoints * 4;
 	}
 	else
 	{
 		nVertices = nPoints * 2;
-		nFaces = (nPoints - 1) * 2;
+		nFaces = nPoints * 2;
 	}
 	vertices = new float[nFaces * 3 * 4];
 	colors = new float[nFaces * 3 * 3];
@@ -132,7 +132,9 @@ bool Extrusion::isConvex()
 {
 	for(unsigned int i = 0; i < nPoints - 2; ++i)
 	{
-		/*if(basePoints[i + 1].x * basePoints[i].z - basePoints[i].x * basePoints[i + 1].z > 0)
+		vec3 u = basePoints[i] - basePoints[i + 1];
+		vec3 v = basePoints[i + 2] - basePoints[i + 1];
+		if(v.x * u.z - u.x * v.z > 0)
 		{
 			// basePoints are counter-clockwise
 			// reverse the order
@@ -141,10 +143,13 @@ bool Extrusion::isConvex()
 			{
 				tempPoints[j] = basePoints[nPoints - 1 - j];
 			}
-			basePoints = tempPoints;
-		}*/
-		vec3 u = basePoints[i] - basePoints[i + 1];
-		vec3 v = basePoints[i + 2] - basePoints[i + 1];
+			for(unsigned int j = 0; j < nPoints; ++j)
+			{
+				basePoints[j] = tempPoints[j];
+			}
+			u = basePoints[i] - basePoints[i + 1];
+			v = basePoints[i + 2] - basePoints[i + 1];
+		}
 		if(v.x * u.z - u.x * v.z < 0)
 		{
 			// basePoints are clockwise
@@ -234,8 +239,8 @@ void Extrusion::generateEndcaps()
 	for(unsigned int i = 0; i < nPoints; ++i)
 	{
 		faces[nPoints * 3 + i].p1 = vec3(basePoints[i].x, length, basePoints[i].z);
-		faces[nPoints * 3 + i].p2 = vec3(basePoints[i + 1].x, length, basePoints[i + 1].z);
-		faces[nPoints * 3 + i].p3 = vec3(0.0f, length, 0.0f);
+		faces[nPoints * 3 + i].p2 = vec3(0.0f, length, 0.0f);
+		faces[nPoints * 3 + i].p3 = vec3(basePoints[i + 1].x, length, basePoints[i + 1].z);
 
 		vertices[nPoints * 36 + i * 12 + 0] = faces[nPoints * 3 + i].p1.x;
 		vertices[nPoints * 36 + i * 12 + 1] = faces[nPoints * 3 + i].p1.y;
@@ -277,7 +282,7 @@ Surfrev::Surfrev(int numSlices, int numPoints, vec3* polylinePoints)
 		nFaces += numSlices;
 	}
 	*/
-	points = new vec3[nVertices + nPoints];
+	points = new vec3[numSlices * nPoints + nPoints];
 	vertices = new float[nFaces * 3 * 4];
 	colors = new float[nFaces * 3 * 3];
 	faces = new Face[nFaces];
@@ -302,7 +307,7 @@ void Surfrev::generateSides()
 	{
 		for(unsigned int j = 0; j < numSlices + 1; ++j)
 		{
-			points[i * numSlices + j] = vec3(cos(j * (360.0f / (float)numSlices) * PI / 180.0f) * polylinePoints[i].x, polylinePoints[i].y, sin(j * (360.0f / (float)numSlices) * PI / 180.0f) * polylinePoints[i].x);
+			points[i * (numSlices + 1) + j] = vec3(cos(j * (360.0f / (float)numSlices) * PI / 180.0f) * polylinePoints[i].x, polylinePoints[i].y, sin(j * (360.0f / (float)numSlices) * PI / 180.0f) * polylinePoints[i].x);
 		}
 	}
 	// side faces
@@ -312,11 +317,11 @@ void Surfrev::generateSides()
 		{
 			faces[(i * numSlices + j) * 2].p1 = points[i * numSlices + j + 0];
 			faces[(i * numSlices + j) * 2].p2 = points[i * numSlices + j + 1];
-			faces[(i * numSlices + j) * 2].p3 = points[i * (numSlices + 1) + j + 1];
+			faces[(i * numSlices + j) * 2].p3 = points[i * numSlices + j + 0 + numSlices + 1];
 
 			faces[(i * numSlices + j) * 2 + 1].p1 = points[i * numSlices + j + 1];
-			faces[(i * numSlices + j) * 2 + 1].p2 = points[i * (numSlices + 1) + j + 2];
-			faces[(i * numSlices + j) * 2 + 1].p3 = points[i * (numSlices + 1) + j + 1];
+			faces[(i * numSlices + j) * 2 + 1].p2 = points[i * numSlices + j + 1 + numSlices + 1];
+			faces[(i * numSlices + j) * 2 + 1].p3 = points[i * numSlices + j + 0 + numSlices + 1];
 
 			vertices[(i * numSlices + j) * 24 + 0] = faces[(i * numSlices + j) * 2].p1.x;
 			vertices[(i * numSlices + j) * 24 + 1] = faces[(i * numSlices + j) * 2].p1.y;
