@@ -75,6 +75,7 @@ void DisplayClass::printShaderInfoLog(int shader)
 DisplayClass::DisplayClass(void)
 {
 	this->camera = new Camera();
+	this->light = new Light();
 	rotation = 0.0f;
 
 	//Call GLEW only _after_ you get the window
@@ -155,11 +156,8 @@ DisplayClass::DisplayClass(void)
 	//Always remember that it doesn't do much good if you don't have OpenGL actually use the shaders
 	glUseProgram(shaderProgram);
 
-	vec3 lightColor(0.0, 1.0, 0.0);
-	glUniform3f(u_lightColor, lightColor.x, lightColor.y, lightColor.z);
-
-	vec3 lightPosition(2.0, 2.0, 2.0);
-	glUniform3f(u_lightPosition, lightPosition.x, lightPosition.y, lightPosition.z);
+	glUniform3f(u_lightColor, light->color.r, light->color.g, light->color.b);
+	glUniform3f(u_lightPosition, light->position.x, light->position.y, light->position.z);
 
 	camera->resizeWindow(DEFAULT_WIDTH, DEFAULT_HEIGHT);
 }
@@ -167,6 +165,7 @@ DisplayClass::DisplayClass(void)
 DisplayClass::~DisplayClass(void)
 {
 	delete this->camera;
+	delete this->light;
 
 	glDeleteBuffers(1, &vbo);
 	glDeleteBuffers(1, &cbo);

@@ -53,8 +53,6 @@ void Mesh::setColor(float red, float green, float blue)
 
 void Mesh::draw(mat4 modelMatrix, DisplayClass* displayClass)
 {
-	modelMatrix = translate(modelMatrix, vec3(0.0f, height / 2.0f, 0.0f));
-
 	glBindBuffer(GL_ARRAY_BUFFER, displayClass->vbo);
 	glBufferData(GL_ARRAY_BUFFER, nFaces * 3 * 4 * sizeof(float), vertices, GL_STATIC_DRAW);
 
@@ -107,12 +105,12 @@ Extrusion::Extrusion(float length, int numPoints, vec3* base)
 	if(isConvex())
 	{
 		nVertices = nPoints * 2 + 2;
-		nFaces = nPoints * 4;
+		nFaces = (nPoints - 1) * 4;
 	}
 	else
 	{
 		nVertices = nPoints * 2;
-		nFaces = nPoints * 2;
+		nFaces = (nPoints - 1) * 2;
 	}
 	points = new vec3[nVertices];
 	vertices = new float[nFaces * 3 * 4];
@@ -128,7 +126,7 @@ Extrusion::Extrusion(float length, int numPoints, vec3* base)
 
 	generateNormals();
 	generateIndices();
-	setColor(0.6f, 0.6f, 0.6f);
+	setColor(0.8f, 0.8f, 1.0f);
 }
 
 Extrusion::~Extrusion()
@@ -148,7 +146,7 @@ bool Extrusion::isConvex()
 		{
 			vec3 u = basePoints[i] - basePoints[i + 1];
 			vec3 v = basePoints[i + 2] - basePoints[i + 1];
-			if(v.x * u.z - u.x * v.z > 0)
+			if(v.x * u.z - u.x * v.z < 0)
 			{
 				// basePoints are counter-clockwise
 				vec3* tempPoints = new vec3[nPoints];
@@ -163,19 +161,19 @@ bool Extrusion::isConvex()
 				u = basePoints[i] - basePoints[i + 1];
 				v = basePoints[i + 2] - basePoints[i + 1];
 			}
-			if(v.x * u.z - u.x * v.z < 0)
+			if(v.x * u.z - u.x * v.z > 0)
 			{
 				// basePoints are clockwise
 				vec3 uu = basePoints[nPoints - 2] - basePoints[0];
 				vec3 vv = basePoints[1] - basePoints[0];
-				if(vv.x * uu.z - uu.x * vv.z > 0)
+				if(vv.x * uu.z - uu.x * vv.z < 0)
 					return false;
 				for(unsigned int j = i + 1; j < nPoints - 2; ++j)
 				{
 					u = basePoints[j] - basePoints[j + 1];
 					v = basePoints[j + 2] - basePoints[j + 1];
 
-					if(v.x * u.z - u.x * v.z > 0)
+					if(v.x * u.z - u.x * v.z < 0)
 						return false;
 				}
 			}
@@ -195,12 +193,12 @@ void Extrusion::generateSides()
 		points[i + nPoints] = basePoints[i] + vec3(0.0f, length, 0.0f);
 	}
 	// if basePoints are clockwise
-	for(unsigned int i = 0; i < nPoints; ++i)
+	for(unsigned int i = 0; i < nPoints - 1; ++i)
 	{
 		// side faces
-		faces[i * 2].p1 = points[i];
-		faces[i * 2].p2 = points[i + nPoints];
-		faces[i * 2].p3 = points[i + 1];
+		faces[i * 2 + 0].p1 = points[i];
+		faces[i * 2 + 0].p2 = points[i + nPoints];
+		faces[i * 2 + 0].p3 = points[i + 1];
 
 		faces[i * 2 + 1].p1 = points[i + 1];
 		faces[i * 2 + 1].p2 = points[i + nPoints];
@@ -239,42 +237,42 @@ void Extrusion::generateEndcaps()
 	// base faces
 	for(unsigned int i = 0; i < nPoints; ++i)
 	{
-		faces[nPoints * 2 + i].p1 = basePoints[i];
-		faces[nPoints * 2 + i].p2 = basePoints[i + i];
-		faces[nPoints * 2 + i].p3 = vec3(0.0f, 0.0f, 0.0f);
+		faces[(nPoints - 1) * 2 + i].p1 = basePoints[i];
+		faces[(nPoints - 1) * 2 + i].p2 = basePoints[i + i];
+		faces[(nPoints - 1) * 2 + i].p3 = vec3(0.0f, 0.0f, 0.0f);
 
-		vertices[nPoints * 24 + i * 12 + 0] = faces[nPoints * 2 + i].p1.x;
-		vertices[nPoints * 24 + i * 12 + 1] = faces[nPoints * 2 + i].p1.y;
-		vertices[nPoints * 24 + i * 12 + 2] = faces[nPoints * 2 + i].p1.z;
-		vertices[nPoints * 24 + i * 12 + 3] = 1.0f;
-		vertices[nPoints * 24 + i * 12 + 4] = faces[nPoints * 2 + i].p2.x;
-		vertices[nPoints * 24 + i * 12 + 5] = faces[nPoints * 2 + i].p2.y;
-		vertices[nPoints * 24 + i * 12 + 6] = faces[nPoints * 2 + i].p2.z;
-		vertices[nPoints * 24 + i * 12 + 7] = 1.0f;
-		vertices[nPoints * 24 + i * 12 + 8] = faces[nPoints * 2 + i].p3.x;
-		vertices[nPoints * 24 + i * 12 + 9] = faces[nPoints * 2 + i].p3.y;
-		vertices[nPoints * 24 + i * 12 + 10] = faces[nPoints * 2 + i].p3.z;
-		vertices[nPoints * 24 + i * 12 + 11] = 1.0f;
+		vertices[(nPoints - 1) * 24 + i * 12 + 0] = faces[nPoints * 2 + i].p1.x;
+		vertices[(nPoints - 1) * 24 + i * 12 + 1] = faces[nPoints * 2 + i].p1.y;
+		vertices[(nPoints - 1) * 24 + i * 12 + 2] = faces[nPoints * 2 + i].p1.z;
+		vertices[(nPoints - 1) * 24 + i * 12 + 3] = 1.0f;
+		vertices[(nPoints - 1) * 24 + i * 12 + 4] = faces[nPoints * 2 + i].p2.x;
+		vertices[(nPoints - 1) * 24 + i * 12 + 5] = faces[nPoints * 2 + i].p2.y;
+		vertices[(nPoints - 1) * 24 + i * 12 + 6] = faces[nPoints * 2 + i].p2.z;
+		vertices[(nPoints - 1) * 24 + i * 12 + 7] = 1.0f;
+		vertices[(nPoints - 1) * 24 + i * 12 + 8] = faces[nPoints * 2 + i].p3.x;
+		vertices[(nPoints - 1) * 24 + i * 12 + 9] = faces[nPoints * 2 + i].p3.y;
+		vertices[(nPoints - 1) * 24 + i * 12 + 10] = faces[nPoints * 2 + i].p3.z;
+		vertices[(nPoints - 1) * 24 + i * 12 + 11] = 1.0f;
 	}
 	// top faces
 	for(unsigned int i = 0; i < nPoints; ++i)
 	{
-		faces[nPoints * 3 + i].p1 = vec3(basePoints[i].x, length, basePoints[i].z);
-		faces[nPoints * 3 + i].p2 = vec3(0.0f, length, 0.0f);
-		faces[nPoints * 3 + i].p3 = vec3(basePoints[i + 1].x, length, basePoints[i + 1].z);
+		faces[(nPoints - 1) * 3 + i].p1 = vec3(basePoints[i].x, length, basePoints[i].z);
+		faces[(nPoints - 1) * 3 + i].p2 = vec3(0.0f, length, 0.0f);
+		faces[(nPoints - 1) * 3 + i].p3 = vec3(basePoints[i + 1].x, length, basePoints[i + 1].z);
 
-		vertices[nPoints * 36 + i * 12 + 0] = faces[nPoints * 3 + i].p1.x;
-		vertices[nPoints * 36 + i * 12 + 1] = faces[nPoints * 3 + i].p1.y;
-		vertices[nPoints * 36 + i * 12 + 2] = faces[nPoints * 3 + i].p1.z;
-		vertices[nPoints * 36 + i * 12 + 3] = 1.0f;
-		vertices[nPoints * 36 + i * 12 + 4] = faces[nPoints * 3 + i].p2.x;
-		vertices[nPoints * 36 + i * 12 + 5] = faces[nPoints * 3 + i].p2.y;
-		vertices[nPoints * 36 + i * 12 + 6] = faces[nPoints * 3 + i].p2.z;
-		vertices[nPoints * 36 + i * 12 + 7] = 1.0f;
-		vertices[nPoints * 36 + i * 12 + 8] = faces[nPoints * 3 + i].p3.x;
-		vertices[nPoints * 36 + i * 12 + 9] = faces[nPoints * 3 + i].p3.y;
-		vertices[nPoints * 36 + i * 12 + 10] = faces[nPoints * 3 + i].p3.z;
-		vertices[nPoints * 36 + i * 12 + 11] = 1.0f;
+		vertices[(nPoints - 1) * 36 + i * 12 + 0] = faces[nPoints * 3 + i].p1.x;
+		vertices[(nPoints - 1) * 36 + i * 12 + 1] = faces[nPoints * 3 + i].p1.y;
+		vertices[(nPoints - 1) * 36 + i * 12 + 2] = faces[nPoints * 3 + i].p1.z;
+		vertices[(nPoints - 1) * 36 + i * 12 + 3] = 1.0f;
+		vertices[(nPoints - 1) * 36 + i * 12 + 4] = faces[nPoints * 3 + i].p2.x;
+		vertices[(nPoints - 1) * 36 + i * 12 + 5] = faces[nPoints * 3 + i].p2.y;
+		vertices[(nPoints - 1) * 36 + i * 12 + 6] = faces[nPoints * 3 + i].p2.z;
+		vertices[(nPoints - 1) * 36 + i * 12 + 7] = 1.0f;
+		vertices[(nPoints - 1) * 36 + i * 12 + 8] = faces[nPoints * 3 + i].p3.x;
+		vertices[(nPoints - 1) * 36 + i * 12 + 9] = faces[nPoints * 3 + i].p3.y;
+		vertices[(nPoints - 1) * 36 + i * 12 + 10] = faces[nPoints * 3 + i].p3.z;
+		vertices[(nPoints - 1) * 36 + i * 12 + 11] = 1.0f;
 	}
 }
 
@@ -315,7 +313,7 @@ Surfrev::Surfrev(int numSlices, int numPoints, vec3* polylinePoints)
 	//generateEndcaps();
 	generateNormals();
 	generateIndices();
-	setColor(1.0f, 0.2f, 0.2f);
+	setColor(1.0f, 0.0f, 0.0f);
 }
 
 Surfrev::~Surfrev()

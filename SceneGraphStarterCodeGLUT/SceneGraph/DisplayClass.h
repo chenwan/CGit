@@ -12,6 +12,7 @@
 #include "../glm/gtc/matrix_transform.hpp"
 
 #include "Camera.h"
+#include "Light.h"
 
 using namespace glm;
 
@@ -19,6 +20,7 @@ class DisplayClass
 {
 public: // public members
 	Camera *camera;
+	Light* light;
 	// for rotating the 2 cubes;
 	float rotation;
 
