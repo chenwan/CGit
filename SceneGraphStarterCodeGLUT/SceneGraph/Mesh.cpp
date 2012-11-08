@@ -1,5 +1,4 @@
 #include "Mesh.h"
-#include <iostream>
 
 vec3 Face::getNormal()
 {
@@ -15,7 +14,13 @@ Mesh::Mesh()
 {}
 
 Mesh::~Mesh()
-{}
+{
+	delete [] normals;
+	delete [] vertices;
+	delete [] colors;
+	delete [] points;
+	delete [] faces;
+}
 
 void Mesh::generateNormals()
 {
@@ -38,17 +43,17 @@ void Mesh::generateIndices()
 
 void Mesh::setColor(float red, float green, float blue)
 {
-	for(unsigned int i = 0; i < nFaces * 3 * 3; i += 3)
+	for(unsigned int i = 0; i < nFaces * 3; ++i)
 	{
-		colors[i] = red;
-		colors[i+1] = green;
-		colors[i+2] = blue;
+		colors[i * 3 + 0] = red;
+		colors[i * 3 + 1] = green;
+		colors[i * 3 + 2] = blue;
 	}
 }
 
 void Mesh::draw(mat4 modelMatrix, DisplayClass* displayClass)
 {
-	//modelMatrix = translate(modelMatrix, vec3(0.0f, height / 2.0f, 0.0f));
+	modelMatrix = translate(modelMatrix, vec3(0.0f, height / 2.0f, 0.0f));
 
 	glBindBuffer(GL_ARRAY_BUFFER, displayClass->vbo);
 	glBufferData(GL_ARRAY_BUFFER, nFaces * 3 * 4 * sizeof(float), vertices, GL_STATIC_DRAW);
@@ -87,9 +92,9 @@ void Mesh::draw(mat4 modelMatrix, DisplayClass* displayClass)
 Extrusion::Extrusion()
 {}
 
-Extrusion::Extrusion(float l, int numPoints, vec3* base)
+Extrusion::Extrusion(float length, int numPoints, vec3* base)
 {
-	this->length = l;
+	this->length = length;
 	height = length;
 	this->nPoints = numPoints;
 	// should check if the basePoints are clockwise, if not reverse the order
@@ -109,6 +114,7 @@ Extrusion::Extrusion(float l, int numPoints, vec3* base)
 		nVertices = nPoints * 2;
 		nFaces = nPoints * 2;
 	}
+	points = new vec3[nVertices];
 	vertices = new float[nFaces * 3 * 4];
 	colors = new float[nFaces * 3 * 3];
 	faces = new Face[nFaces];
@@ -126,45 +132,52 @@ Extrusion::Extrusion(float l, int numPoints, vec3* base)
 }
 
 Extrusion::~Extrusion()
-{}
+{
+	delete [] normals;
+	delete [] vertices;
+	delete [] colors;
+	delete [] points;
+	delete [] faces;
+}
 
 bool Extrusion::isConvex()
 {
-	for(unsigned int i = 0; i < nPoints - 2; ++i)
+	if(nPoints > 3)
 	{
-		vec3 u = basePoints[i] - basePoints[i + 1];
-		vec3 v = basePoints[i + 2] - basePoints[i + 1];
-		if(v.x * u.z - u.x * v.z > 0)
+		for(unsigned int i = 0; i < nPoints - 2; ++i)
 		{
-			// basePoints are counter-clockwise
-			// reverse the order
-			vec3* tempPoints = new vec3[nPoints];
-			for(unsigned int j = 0; j < nPoints; ++j)
+			vec3 u = basePoints[i] - basePoints[i + 1];
+			vec3 v = basePoints[i + 2] - basePoints[i + 1];
+			if(v.x * u.z - u.x * v.z > 0)
 			{
-				tempPoints[j] = basePoints[nPoints - 1 - j];
+				// basePoints are counter-clockwise
+				vec3* tempPoints = new vec3[nPoints];
+				for(unsigned int j = 0; j < nPoints; ++j)
+				{
+					tempPoints[j] = basePoints[nPoints - 1 - j];
+				}
+				for(unsigned int j = 0; j < nPoints; ++j)
+				{
+					basePoints[j] = tempPoints[j];
+				}
+				u = basePoints[i] - basePoints[i + 1];
+				v = basePoints[i + 2] - basePoints[i + 1];
 			}
-			for(unsigned int j = 0; j < nPoints; ++j)
+			if(v.x * u.z - u.x * v.z < 0)
 			{
-				basePoints[j] = tempPoints[j];
-			}
-			u = basePoints[i] - basePoints[i + 1];
-			v = basePoints[i + 2] - basePoints[i + 1];
-		}
-		if(v.x * u.z - u.x * v.z < 0)
-		{
-			// basePoints are clockwise
-			vec3 uu = basePoints[nPoints - 2] - basePoints[0];
-			vec3 vv = basePoints[1] - basePoints[0];
-			//std::cout<<vv.x * uu.z - uu.x * vv.z;
-			if(vv.x * uu.z - uu.x * vv.z > 0)
-				return false;
-			for(unsigned int j = i + 1; j < nPoints - 2; ++j)
-			{
-				u = basePoints[j] - basePoints[j + 1];
-				v = basePoints[j + 2] - basePoints[j + 1];
-
-				if(v.x * u.z - u.x * v.z > 0)
+				// basePoints are clockwise
+				vec3 uu = basePoints[nPoints - 2] - basePoints[0];
+				vec3 vv = basePoints[1] - basePoints[0];
+				if(vv.x * uu.z - uu.x * vv.z > 0)
 					return false;
+				for(unsigned int j = i + 1; j < nPoints - 2; ++j)
+				{
+					u = basePoints[j] - basePoints[j + 1];
+					v = basePoints[j + 2] - basePoints[j + 1];
+
+					if(v.x * u.z - u.x * v.z > 0)
+						return false;
+				}
 			}
 		}
 	}
@@ -173,17 +186,25 @@ bool Extrusion::isConvex()
 
 void Extrusion::generateSides()
 {
+	for(unsigned int i = 0; i < nPoints; ++i)
+	{
+		points[i] = basePoints[i];
+	}
+	for(unsigned int i = 0; i < nPoints; ++i)
+	{
+		points[i + nPoints] = basePoints[i] + vec3(0.0f, length, 0.0f);
+	}
 	// if basePoints are clockwise
 	for(unsigned int i = 0; i < nPoints; ++i)
 	{
 		// side faces
-		faces[i * 2].p1 = basePoints[i];
-		faces[i * 2].p2 = basePoints[i + 1];
-		faces[i * 2].p3 = vec3(basePoints[i].x, length, basePoints[i].z);
+		faces[i * 2].p1 = points[i];
+		faces[i * 2].p2 = points[i + nPoints];
+		faces[i * 2].p3 = points[i + 1];
 
-		faces[i * 2 + 1].p1 = vec3(basePoints[i].x, length, basePoints[i].z);
-		faces[i * 2 + 1].p2 = basePoints[i + 1];
-		faces[i * 2 + 1].p3 = vec3(basePoints[i + 1].x, length, basePoints[i + 1].z);
+		faces[i * 2 + 1].p1 = points[i + 1];
+		faces[i * 2 + 1].p2 = points[i + nPoints];
+		faces[i * 2 + 1].p3 = points[i + nPoints + 1];
 
 		// side face vertices
 		vertices[i * 24 + 0] = faces[i * 2].p1.x;
@@ -298,7 +319,13 @@ Surfrev::Surfrev(int numSlices, int numPoints, vec3* polylinePoints)
 }
 
 Surfrev::~Surfrev()
-{}
+{
+	delete [] normals;
+	delete [] vertices;
+	delete [] colors;
+	delete [] points;
+	delete [] faces;
+}
 
 void Surfrev::generateSides()
 {

@@ -44,7 +44,7 @@ class Extrusion: public Mesh
 {
 public:
 	Extrusion();
-	Extrusion(float l, int numPoints, vec3* base);
+	Extrusion(float length, int numPoints, vec3* base);
 	~Extrusion();
 
 	bool isConvex(); // Check whether or not the base is a convex polygon.

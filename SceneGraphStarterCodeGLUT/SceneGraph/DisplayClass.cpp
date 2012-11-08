@@ -150,12 +150,16 @@ DisplayClass::DisplayClass(void)
 	u_modelMatrixLocation = glGetUniformLocation(shaderProgram, "u_modelMatrix");
 	u_projMatrixLocation = glGetUniformLocation(shaderProgram, "u_projMatrix");
 	u_lightPosition = glGetUniformLocation(shaderProgram, "u_lightPos");
+	u_lightColor = glGetUniformLocation(shaderProgram, "u_lightColor");
 
 	//Always remember that it doesn't do much good if you don't have OpenGL actually use the shaders
 	glUseProgram(shaderProgram);
 
-	glm::vec3 light(2.0, 0.0, 2.0);
-	glUniform3f(u_lightPosition, light.x, light.y, light.z);
+	vec3 lightColor(0.0, 1.0, 0.0);
+	glUniform3f(u_lightColor, lightColor.x, lightColor.y, lightColor.z);
+
+	vec3 lightPosition(2.0, 2.0, 2.0);
+	glUniform3f(u_lightPosition, lightPosition.x, lightPosition.y, lightPosition.z);
 
 	camera->resizeWindow(DEFAULT_WIDTH, DEFAULT_HEIGHT);
 }

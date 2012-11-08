@@ -47,6 +47,7 @@ public: // private members
 	unsigned int u_modelMatrixLocation;
 	unsigned int u_projMatrixLocation;
 	unsigned int u_lightPosition;
+	unsigned int u_lightColor;
 
 	//needed to compile and link and use the shaders
 	unsigned int vertexShader;
