@@ -130,7 +130,7 @@ Extrusion::Extrusion(float length, int numPoints, vec3* base)
 
 	generateNormals();
 	generateIndices();
-	setColor(vec3(1.0f, 0.0f, 0.0f));
+	setColor(vec3(1.0f, 0.0f, 1.0f));
 }
 
 Extrusion::~Extrusion()
@@ -317,7 +317,7 @@ Surfrev::Surfrev(int numSlices, int numPoints, vec3* polylinePoints)
 	//generateEndcaps();
 	generateNormals();
 	generateIndices();
-	setColor(vec3(1.0f, 1.0f, 0.0f));
+	setColor(vec3(1.0f, 0.0f, 0.0f));
 }
 
 Surfrev::~Surfrev()

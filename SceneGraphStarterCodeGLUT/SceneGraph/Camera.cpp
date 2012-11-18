@@ -7,6 +7,7 @@ Camera::Camera(void)
 	// setup default camera parameters
 	this->eye = vec3(0, 5, 10);
 	this->center = vec3(0, 0, 0);
+	this->vdir = vec3(1, 0, 0);
 	this->up = vec3(0, 1, 0);
 	this->fovy = 60.0f;
 	this->width = DEFAULT_WIDTH;

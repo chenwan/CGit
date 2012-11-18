@@ -2,6 +2,9 @@
 #define SCENEGRAPH_H
 
 #include "Node.h"
+#include<string>
+
+using namespace std;
 
 // Scene Graph
 class SceneGraph
@@ -23,11 +26,14 @@ public:
 	Node* getRootNode();
 
 	void draw(DisplayClass* displayClass);
+	void ParseSceneFile(string sceneFile);
 
 public:
 	std::vector<Node*> m_Nodes;
 	Node* currentNode;
 	Node* previousNode;
+	Geometry* geometry;
+	int numItems;
 };
 
 #endif

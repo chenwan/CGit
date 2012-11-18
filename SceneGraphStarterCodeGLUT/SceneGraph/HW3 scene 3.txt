@@ -1,8 +1,0 @@
-3 3 1
-
-mesh
-testextrusion1.dat
-bricks.jpg
-0 0
-0
-1 1 1

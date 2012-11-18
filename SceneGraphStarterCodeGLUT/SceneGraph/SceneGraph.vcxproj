@@ -79,27 +79,38 @@
   <ItemGroup>
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="DisplayClass.cpp" />
+    <ClCompile Include="EasyBMP.cpp" />
     <ClCompile Include="Furniture.cpp" />
     <ClCompile Include="Geometry.cpp" />
     <ClCompile Include="glew.c" />
+    <ClCompile Include="Image.cpp" />
     <ClCompile Include="Light.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Material.cpp" />
     <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="Node.cpp" />
     <ClCompile Include="Primitive.cpp" />
+    <ClCompile Include="RayTrace.cpp" />
     <ClCompile Include="SceneGraph.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Define.h" />
     <ClInclude Include="DisplayClass.h" />
+    <ClInclude Include="EasyBMP.h" />
+    <ClInclude Include="EasyBMP_BMP.h" />
+    <ClInclude Include="EasyBMP_DataStructures.h" />
+    <ClInclude Include="EasyBMP_VariousBMPutilities.h" />
     <ClInclude Include="Furniture.h" />
     <ClInclude Include="Geometry.h" />
     <ClInclude Include="glew.h" />
+    <ClInclude Include="Image.h" />
     <ClInclude Include="Light.h" />
+    <ClInclude Include="Material.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="Node.h" />
     <ClInclude Include="Primitive.h" />
+    <ClInclude Include="RayTrace.h" />
     <ClInclude Include="SceneGraph.h" />
   </ItemGroup>
   <ItemGroup>

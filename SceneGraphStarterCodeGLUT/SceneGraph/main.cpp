@@ -6,6 +6,7 @@
 #include "Define.h"
 #include "DisplayClass.h"
 #include "SceneGraph.h"
+#include "RayTrace.h"
 
 // glut libraries: make sure glut is included AFTER your glew.h
 #include "../freeglut/include/GL/glut.h"
@@ -18,8 +19,6 @@ DisplayClass *displayClass;
 
 // scene graph instance
 SceneGraph* sceneGraph;
-// geometry instance
-Geometry* geometry;
 
 //Animation/transformation stuff
 clock_t old;
@@ -30,136 +29,9 @@ void display(void);
 void keypress(unsigned char, int, int);
 void cleanup(void);
 
-void parseConfigFile(string fileName)
-{
-	ifstream readFile;
-	ifstream readDatFile;
-	readFile.open(fileName);
-	if(!readFile.is_open())
-	{
-		cerr<<"Cannot open configuration file."<<endl;
-		readFile.close();
-	}
-
-	cout<<"Start parsing configuration file."<<endl;
-
-	sceneGraph = new SceneGraph();
-
-	int xSize, zSize, numItems;
-	readFile>>xSize>>zSize>>numItems;
-
-	Floor* floor = new Floor(xSize, zSize);
-	floor->red = 0.0f;
-	floor->green = 1.0f;
-	floor->blue = 1.0f;
-	Node* root = new Node(floor);
-	sceneGraph->addNode(root);
-	sceneGraph->currentNode = root;
-
-	string geometryType;
-	string datFile;
-	string textureFile;
-	string meshType;
-	float extrusion_length;
-	int surfrev_numSlices;
-	int numPoints;
-	vec3* extrusion_basePoints;
-	vec3* surfrev_polylinePoints;
-
-	for(int i = 0; i < numItems; ++i)
-	{
-		readFile>>geometryType;
-		if(!strcmp(geometryType.c_str(), "chair"))
-		{
-			geometry = new Chair();
-			readFile>>geometry->red>>geometry->green>>geometry->blue;
-		}
-		else if(!strcmp(geometryType.c_str(), "table"))
-		{
-			geometry = new Table();
-			readFile>>geometry->red>>geometry->green>>geometry->blue;
-		}
-		else if(!strcmp(geometryType.c_str(), "cabinet"))
-		{
-			geometry = new Cabinet();
-			readFile>>geometry->red>>geometry->green>>geometry->blue;
-		}
-		else if(!strcmp(geometryType.c_str(), "lamp"))
-		{
-			geometry = new Lamp();
-			readFile>>geometry->red>>geometry->green>>geometry->blue;
-		}
-		else if (!strcmp(geometryType.c_str(), "mesh"))
-		{
-			readFile>>datFile;
-			readDatFile.open(datFile);
-			if(!readDatFile.is_open())
-			{
-				cerr<<"Cannot open "<<datFile<<"."<<endl;
-				readDatFile.close();
-			}
-			readDatFile>>meshType;
-			if(!strcmp(meshType.c_str(), "extrusion"))
-			{
-				readDatFile>>extrusion_length;
-				readDatFile>>numPoints;
-				extrusion_basePoints = new vec3[numPoints];
-				for(unsigned int i = 0; i < numPoints; ++i)
-				{
-					readDatFile>>extrusion_basePoints[i].x>>extrusion_basePoints[i].z;
-					extrusion_basePoints[i].y = 0.0f;
-				}
-				geometry = new Extrusion(extrusion_length, numPoints, extrusion_basePoints);
-				readDatFile.clear();
-				readDatFile.close();
-			}
-			else if(!strcmp(meshType.c_str(), "surfrev"))
-			{
-				readDatFile>>surfrev_numSlices;
-				readDatFile>>numPoints;
-				if(numPoints < 3)
-				{
-					cerr<<"Number of radical sliced in the revolved mesh should be at least 3."<<endl;
-					exit(1);
-				}
-				surfrev_polylinePoints = new vec3[numPoints];
-				for(unsigned int i = 0; i < numPoints; ++i)
-				{
-					readDatFile>>surfrev_polylinePoints[i].x>>surfrev_polylinePoints[i].y;
-					surfrev_polylinePoints[i].z = 0.0f;
-					if(surfrev_polylinePoints[i].x < 0)
-					{
-						cerr<<"x-coordinate of the points of the polyline cannot be negative."<<endl;
-						exit(1);
-					}
-				}
-				geometry = new Surfrev(surfrev_numSlices, numPoints, surfrev_polylinePoints);
-				readDatFile.clear();
-				readDatFile.close();
-			}
-			readFile>>textureFile;
-		}
-		else
-		{
-			cerr<<"Cannot recognize the geometry type!"<<endl;
-			exit(1);
-		}
-		readFile>>geometry->xIndex>>geometry->zIndex;
-		readFile>>geometry->rotation;
-		readFile>>geometry->xScale>>geometry->yScale>>geometry->zScale;
-		Node* geometryNode = new Node(sceneGraph->getRootNode(), geometry);
-		sceneGraph->addNode(geometryNode);
-	}
-
-	cout<<"Finish parsing configuration file."<<endl;
-	readFile.clear();
-	readFile.close();
-}
-
 int main(int argc, char** argv) {
 
-	// File Input
-	char fileName[64];
+	/*char fileName[64];
 	for(int i = 1; i < argc; ++i)
 	{
 		if(i == 1)
@@ -169,8 +41,9 @@ int main(int argc, char** argv) {
 		if(i != argc - 1)
 			strcat_s(fileName, " ");
 	}
-	cout<<fileName<<endl;
-	parseConfigFile(fileName);
+	cout<<fileName<<endl;*/
+	sceneGraph = new SceneGraph();
+	sceneGraph->ParseSceneFile(argv[1]);
 
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA);
@@ -252,6 +125,8 @@ void keypress(unsigned char key, int x, int y) {
 			sceneGraph->currentNode = sceneGraph->getRootNode();
 		}
 		break;
+	case 'p':
+		//RayTrace* rayTrace = new RayTrace();
 	case 27: // ascii code of esc key
 		if (displayClass)
 			delete displayClass;

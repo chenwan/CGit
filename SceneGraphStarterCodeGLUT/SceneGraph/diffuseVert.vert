@@ -15,10 +15,11 @@ out vec3 fs_normal;
 out vec3 fs_light_vector;
 out vec3 fs_eye_vector;
 out vec3 fs_color;
+out vec3 light_color;
 
 void main() { 
 	// light source is fixed here. Make it an uniform if you want to change it.
-	const vec3 lightPos = vec3(2.0, 0.0, 2.0);
+	//const vec3 lightPos = vec3(2.0, 0.0, 2.0);
 	vec3 eyePos = vec3(0, 5, 10);
     
     // Set the color and normal as just the input from the VBOs,
@@ -27,7 +28,8 @@ void main() {
     fs_normal = (transpose(inverse(u_modelMatrix)) * vs_normal).xyz;
     
     // Set up our vector for the light
-    fs_light_vector = vec3(lightPos - (u_modelMatrix * vs_position).xyz);
+    fs_light_vector = vec3(u_lightPos - (u_modelMatrix * vs_position).xyz);
+	light_color = u_lightColor;
 
 	fs_eye_vector = vec3(eyePos - (u_modelMatrix * vs_position).xyz);
 

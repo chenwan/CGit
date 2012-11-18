@@ -2,6 +2,7 @@
 
 SceneGraph::SceneGraph()
 {
+	geometry = new Geometry;
 }
 
 SceneGraph::~SceneGraph()
@@ -116,4 +117,128 @@ void SceneGraph::draw(DisplayClass* displayClass)
 
 		node->m_Geometry->draw(node->m_Transformation, displayClass);
 	}
+}
+
+void SceneGraph::ParseSceneFile(string sceneFile)
+{
+	ifstream readFile;
+	ifstream readDatFile;
+	readFile.open(sceneFile);
+	if(!readFile.is_open())
+	{
+		cerr<<"Cannot open configuration file."<<endl;
+		readFile.close();
+	}
+
+	cout<<"Start parsing configuration file."<<endl;
+
+	int xSize, zSize;
+	readFile>>xSize>>zSize>>numItems;
+
+	Floor* floor = new Floor(xSize, zSize);
+	floor->red = 0.0f;
+	floor->green = 1.0f;
+	floor->blue = 1.0f;
+	Node* root = new Node(floor);
+	this->addNode(root);
+	this->currentNode = root;
+
+	string geometryType;
+	string datFile;
+	string meshType;
+	float extrusion_length;
+	int surfrev_numSlices;
+	int numPoints;
+	vec3* extrusion_basePoints;
+	vec3* surfrev_polylinePoints;
+	int material;
+
+	for(int i = 0; i < numItems; ++i)
+	{
+		readFile>>geometryType;
+		if(!strcmp(geometryType.c_str(), "chair"))
+		{
+			geometry = new Chair();
+			//readFile>>geometry->red>>geometry->green>>geometry->blue;
+		}
+		else if(!strcmp(geometryType.c_str(), "table"))
+		{
+			geometry = new Table();
+			//readFile>>geometry->red>>geometry->green>>geometry->blue;
+		}
+		else if(!strcmp(geometryType.c_str(), "cabinet"))
+		{
+			geometry = new Cabinet();
+			//readFile>>geometry->red>>geometry->green>>geometry->blue;
+		}
+		else if(!strcmp(geometryType.c_str(), "lamp"))
+		{
+			geometry = new Lamp();
+			//readFile>>geometry->red>>geometry->green>>geometry->blue;
+		}
+		else if (!strcmp(geometryType.c_str(), "mesh"))
+		{
+			readFile>>datFile;
+			readDatFile.open(datFile);
+			if(!readDatFile.is_open())
+			{
+				cerr<<"Cannot open "<<datFile<<"."<<endl;
+				readDatFile.close();
+			}
+			readDatFile>>meshType;
+			if(!strcmp(meshType.c_str(), "extrusion"))
+			{
+				readDatFile>>extrusion_length;
+				readDatFile>>numPoints;
+				extrusion_basePoints = new vec3[numPoints];
+				for(unsigned int i = 0; i < numPoints; ++i)
+				{
+					readDatFile>>extrusion_basePoints[i].x>>extrusion_basePoints[i].z;
+					extrusion_basePoints[i].y = 0.0f;
+				}
+				geometry = new Extrusion(extrusion_length, numPoints, extrusion_basePoints);
+				readDatFile.clear();
+				readDatFile.close();
+			}
+			else if(!strcmp(meshType.c_str(), "surfrev"))
+			{
+				readDatFile>>surfrev_numSlices;
+				readDatFile>>numPoints;
+				if(numPoints < 3)
+				{
+					cerr<<"Number of radical sliced in the revolved mesh should be at least 3."<<endl;
+					exit(1);
+				}
+				surfrev_polylinePoints = new vec3[numPoints];
+				for(unsigned int i = 0; i < numPoints; ++i)
+				{
+					readDatFile>>surfrev_polylinePoints[i].x>>surfrev_polylinePoints[i].y;
+					surfrev_polylinePoints[i].z = 0.0f;
+					if(surfrev_polylinePoints[i].x < 0)
+					{
+						cerr<<"x-coordinate of the points of the polyline cannot be negative."<<endl;
+						exit(1);
+					}
+				}
+				geometry = new Surfrev(surfrev_numSlices, numPoints, surfrev_polylinePoints);
+				readDatFile.clear();
+				readDatFile.close();
+			}
+		}
+		else
+		{
+			cerr<<"Cannot recognize the geometry type!"<<endl;
+			exit(1);
+		}
+		readFile>>material;
+		readFile>>geometry->xIndex>>geometry->zIndex;
+		readFile>>geometry->rotation;
+		readFile>>geometry->xScale>>geometry->yScale>>geometry->zScale;
+		Node* geometryNode = new Node(this->getRootNode(), geometry);
+		this->addNode(geometryNode);
+	}
+
+	cout<<"Finish parsing configuration file."<<endl;
+	readFile.clear();
+	readFile.close();
 }
