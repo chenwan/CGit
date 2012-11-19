@@ -3,6 +3,7 @@
 
 #include "DisplayClass.h"
 #include "../glm/gtc/matrix_transform.hpp"
+#include "Material.h"
 
 #include<vector>
 
@@ -16,6 +17,7 @@ public:
 
 	virtual void setColor(vec3 color){};
 	virtual void draw(mat4 modelMatrix, DisplayClass* displayClass){};
+	virtual double RayIntersect(vec3 const& P0, vec3 const& V0){return -1;};
 
 public:
 	float red;
@@ -30,6 +32,7 @@ public:
 	float zScale;
 
 	float height;
+	Material* material;
 };
 
 #endif

@@ -2,6 +2,7 @@
 #define IMAGE_H
 
 #include <string>
+#include "../glm/glm.hpp"
 
 class Image
 {
@@ -11,6 +12,7 @@ public:
 public:
 	std::string file;
 	int reso[2];
+	glm::vec3 backgroundColor;
 };
 
 #endif

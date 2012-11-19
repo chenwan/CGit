@@ -14,6 +14,7 @@ Geometry::Geometry()
 	zScale = 1.0f;
 
 	height = 1.0f;
+	material = new Material();
 }
 
 Geometry::~Geometry()

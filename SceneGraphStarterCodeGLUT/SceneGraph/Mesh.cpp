@@ -423,3 +423,51 @@ void Surfrev::generateEndcaps()
 		indices[(numSlices + 1) * nPoints * 6 + i * 3 + 2] = numSlices * nPoints + 1;
 	}
 }
+
+double triangleArea(vec3 const& P1, vec3 const& P2, vec3 const& P3)
+{
+	double det1 = determinant(mat3(vec3(P1.y, P1.z, 1), vec3(P2.y, P2.z, 1), vec3(P3.y, P3.z, 1)));
+	double det2 = determinant(mat3(vec3(P1.z, P1.x, 1), vec3(P2.z, P2.x, 1), vec3(P3.z, P3.x, 1)));
+	double det3 = determinant(mat3(vec3(P1.x, P1.y, 1), vec3(P2.x, P2.y, 1), vec3(P3.x, P3.y, 1)));
+	double area = 0.5 * sqrt(det1 * det1 + det2 * det2  + det3 * det3);
+	return area;
+}
+
+double Mesh::RayIntersect(vec3 const& P0, vec3 const& V0)
+{
+	for(unsigned int i = 0; i < nFaces; ++i)
+	{
+		vec3 P1 = faces[i].p1;
+		vec3 P2 = faces[i].p2;
+		vec3 P3 = faces[i].p3;
+
+		vec3 V = normalize(V0);
+		vec3 normal = normalize(cross(P2 - P1, P3 - P1));
+		if(dot(normal, V) < 0)
+			normal = -normal;
+		double denominator = dot(normal, V);
+		double t = -1;
+		if((denominator < EPSILON) && (denominator > -EPSILON))
+			t = -1;
+		else
+		{
+			t = dot(normal, P1 - P0) / denominator;
+			if(t < 0)
+				t = -1;
+			else
+			{
+				vec3 P = P0 + vec3(t * V.x, t * V.y, t * V.z);
+				double s = triangleArea(P1, P2, P3);
+				double s1 = triangleArea(P, P2, P3) / s;
+				double s2 = triangleArea(P, P3, P1) / s;
+				double s3 = triangleArea(P, P1, P2) / s;
+				// better solution?
+				if((s1 >= 0) && (s1 <= 1) && (s2 >= 0) && (s2 <= 1) && (s3 >= 0) && (s3 <= 1) && (s1 + s2 + s3 - 1 < EPSILON) && (s1 + s2 + s3 - 1 > -EPSILON))
+					return t;
+				else
+					t = -1;
+			}
+		}
+	}
+	return -1;
+}

@@ -16,7 +16,7 @@ public:
 public:
 	vec3 color;
 	vec3 position;
-	vec3 acol;
+	vec3 ambientColor;
 };
 
 #endif

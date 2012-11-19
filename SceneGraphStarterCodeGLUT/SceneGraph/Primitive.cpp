@@ -182,6 +182,83 @@ void Box::initIndices()
 	indices[33] = 21; indices[34] = 23; indices[35] = 22;
 }
 
+void swap(double &a, double &b)
+{
+	double t = a;
+	a = b;
+	b = t;
+}
+double RayIntersect(vec3 const& P0, vec3 const& V0)
+{
+	vec3 V = normalize(V0);
+	double Tnear = -INFINITY;
+	double Tfar = INFINITY;
+	double Xl = -0.5, Xh = 0.5;
+	double Yl = -0.5, Yh = 0.5;
+	double Zl = -0.5, Zh = 0.5;
+	if((V.x < EPSILON) && (V.x > -EPSILON))
+	{
+		if((P0.x < Xl) || (P0.x > Xh))
+			return -1;
+	}
+	else
+	{
+		double T1 = (Xl - P0.x) / V.x;
+		double T2 = (Xh - P0.x) / V.x;
+		if(T1 > T2)
+			swap(T1, T2);
+		if(T1 > Tnear)
+			Tnear = T1;
+		if(T2 < Tfar)
+			Tfar = T2;
+		if(Tnear > Tfar)
+			return -1;
+		if(Tfar < 0)
+			return -1;
+	}
+	if((V.y < EPSILON) && (V.y > -EPSILON))
+	{
+		if((P0.y < Yl) || (P0.y > Yh))
+			return -1;
+	}
+	else
+	{
+		double T1 = (Yl - P0.y) / V.y;
+		double T2 = (Yh - P0.y) / V.y;
+		if(T1 > T2)
+			swap(T1, T2);
+		if(T1 > Tnear)
+			Tnear = T1;
+		if(T2 < Tfar)
+			Tfar = T2;
+		if(Tnear > Tfar)
+			return -1;
+		if(Tfar < 0)
+			return -1;
+	}
+	if((V.z < EPSILON) && (V.z > -EPSILON))
+	{
+		if((P0.z < Zl) || (P0.z > Zh))
+			return -1;
+	}
+	else
+	{
+		double T1 = (Zl - P0.z) / V.z;
+		double T2 = (Zh - P0.z) / V.z;
+		if(T1 > T2)
+			swap(T1, T2);
+		if(T1 > Tnear)
+			Tnear = T1;
+		if(T2 < Tfar)
+			Tfar = T2;
+		if(Tnear > Tfar)
+			return -1;
+		if(Tfar < 0)
+			return -1;
+	}
+	return Tnear;
+}
+
 Sphere::Sphere()
 {
 	nIterations = 4;
@@ -400,6 +477,32 @@ void Sphere::initIndices()
 	}
 }
 
+double Sphere::RayIntersect(vec3 const& P0, vec3 const& V0)
+{
+	vec3 V = normalize(V0);
+	double b = 2.0 * dot(V, P0);
+	double c = dot(P0, P0) - 1.0;
+	double t0, t1;
+	double discriminant = b * b - 4.0 * c;
+	if(discriminant < 0)
+		return -1;
+	else
+	{
+		t0 = (-b - sqrt(discriminant)) / 2.0;
+		if(t0 > 0)
+			return t0;
+		else
+		{
+			t1 = (-b + sqrt(discriminant)) / 2.0;
+			if(t1 > 0)
+				return t1;
+			else
+				return -1;
+		}
+	}
+	return -1;
+}
+
 Cylinder::Cylinder()
 {
 	nEdges = 30;
@@ -471,4 +574,76 @@ void Cylinder::initIndices()
 	indices[nEdges * 6 + (nEdges - 1) * 6 + 5] = 2;
 	indices[nEdges * 3 + (nEdges - 1) * 3 + 2] = nEdges + 2;
 	indices[(nEdges - 1) * 3 + 2] = 2;
+}
+
+double Cylinder::RayIntersect(vec3 const& P0, vec3 const& V0)
+{
+	vec3 V = normalize(V0);
+	double t = -1;
+	if(P0.y > 0.5)
+	{
+		// check intersection with the top endcap
+		vec3 normal = vec3(0.0, 1.0, 0.0);
+		double denominator = dot(normal, V);
+		if((denominator < EPSILON) && (denominator > -EPSILON))
+			t = -1;
+		t = dot(normal, vec3(0.0, 0.5, 0.0) - P0) / denominator;
+		if(t < 0)
+			t = -1;
+		else
+		{
+			vec3 P = P0 + vec3(t * V.x, t * V.y, t * V.z);
+			vec3 PO = P - vec3(0.0, 0.5, 0.0);
+			if(PO.x * PO.x + PO.z * PO.z < 0.25)
+				return t;
+		}
+	}
+	if(P0.y < -0.5)
+	{
+		// check intersection with the bottom endcap
+		vec3 normal = vec3(0.0, -1.0, 0.0);
+		double denominator = dot(normal, V);
+		if((denominator < EPSILON) && (denominator > -EPSILON))
+			t = -1;
+		double t = dot(normal, vec3(0.0, -0.5, 0.0) - P0) / denominator;
+		if(t < 0)
+			t = -1;
+		else
+		{
+			vec3 P = P0 + vec3(t * V.x, t * V.y, t * V.z);
+			vec3 PO = P - vec3(0.0, -0.5, 0.0);
+			if(PO.x * PO.x + PO.z * PO.z < 0.25)
+				return t;
+		}
+	}
+	// check intersection with cylinder body
+	double a = V.x * V.x + V.z * V.z;
+	double b = 2.0 * (P0.x * V.x + P0.z * V.z);
+	double c = P0.x * P0.x + P0.z * P0.z - 0.25;
+	double discriminant = b * b - 4 * a * c;
+	if((a < EPSILON) && (a > -EPSILON))
+		t = -c / b;
+	else
+	{
+		if(discriminant < 0)
+			return -1;
+		else
+		{
+			t = (-b - sqrt(discriminant)) / (2.0 * a);
+			if(t > 0)
+				;
+			else
+			{
+				t = (-b + sqrt(discriminant)) / (2.0 * a);
+				if(t > 0)
+					;
+				else
+					return -1;
+			}
+		}
+	}
+	vec3 P = P0 + vec3(t * V.x, t * V.y, t * V.z);
+	if((P.y > 0.5) || (P.y < -0.5))
+		return -1;
+	return t;
 }

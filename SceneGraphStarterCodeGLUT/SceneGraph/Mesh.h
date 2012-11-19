@@ -28,6 +28,8 @@ public:
 
 	void draw(mat4 modelMatrix, DisplayClass* displayClass);
 
+	double RayIntersect(vec3 const& P0, vec3 const& V0);
+
 public:
 	unsigned int nPoints; // the number of the input basePoints or polylinePoints
 	unsigned int nVertices; // the number of unique vertices
