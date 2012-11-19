@@ -28,6 +28,8 @@ public:
 	void draw(DisplayClass* displayClass);
 	void ParseSceneFile(string sceneFile);
 
+	double RayIntersect(vec3 const& P0, vec3 const& V0);
+
 public:
 	std::vector<Node*> m_Nodes;
 	Node* currentNode;

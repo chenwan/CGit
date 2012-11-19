@@ -102,6 +102,8 @@ void RayTrace::Main()
 	}
 }
 
+// I don't know what this is, just using it temporarily
+extern SceneGraph* sceneGraph;
 void RayTrace::TraceRay(vec3 start, vec3 direction, int depth, vec3 color)
 {
 	vec3 ReflectedDirection;
@@ -121,5 +123,16 @@ void RayTrace::TraceRay(vec3 start, vec3 direction, int depth, vec3 color)
 	}
 	// intersect ray with all objects and find intersection point(if any)
 	// on object j that is closest to start of ray; else return nil
-
+	float t = sceneGraph->RayIntersect(start, direction);
+	if(t < 0)
+	{
+		// if ray is parallel to any of the *light directions*?
+		// color = light_color
+		// else
+		// color = background_color
+	}
+	else
+	{
+		vec3 IntersectionPoint = start + t * direction;
+	}
 }

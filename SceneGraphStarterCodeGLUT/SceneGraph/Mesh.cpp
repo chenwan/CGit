@@ -433,6 +433,7 @@ double triangleArea(vec3 const& P1, vec3 const& P2, vec3 const& P3)
 	return area;
 }
 
+// will have to get the smallest t
 double Mesh::RayIntersect(vec3 const& P0, vec3 const& V0)
 {
 	for(unsigned int i = 0; i < nFaces; ++i)

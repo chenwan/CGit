@@ -242,3 +242,26 @@ void SceneGraph::ParseSceneFile(string sceneFile)
 	readFile.clear();
 	readFile.close();
 }
+
+// need to check the smallest t for mesh
+double SceneGraph::RayIntersect(vec3 const& P0, vec3 const& V0)
+{
+	double t = -1;
+	double t_min = -1;
+	for(unsigned int i = 0; i < m_Nodes.size(); ++i)
+	{
+		t = m_Nodes[i]->m_Geometry->RayIntersect(P0, V0);
+		if(t > 0)
+		{
+			t_min = t;
+			for(unsigned int j = i + 1; j < m_Nodes.size(); ++j)
+			{
+				t = m_Nodes[i]->m_Geometry->RayIntersect(P0, V0);
+				if((t > 0) && (t < t_min))
+					t_min = t;
+			}
+		}
+		return t_min;
+	}
+	return -1;
+}

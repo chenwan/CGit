@@ -9,7 +9,7 @@
 #include "Camera.h"
 #include "Image.h"
 #include "Light.h"
-#include "RayIntersect.h"
+#include "SceneGraph.h"
 
 using namespace std;
 
