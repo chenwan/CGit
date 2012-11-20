@@ -188,7 +188,7 @@ void swap(double &a, double &b)
 	a = b;
 	b = t;
 }
-double RayIntersect(vec3 const& P0, vec3 const& V0)
+double Box::RayIntersect(vec3 const& P0, vec3 const& V0)
 {
 	vec3 V = normalize(V0);
 	double Tnear = -INFINITY;

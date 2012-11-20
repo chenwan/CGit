@@ -19,7 +19,7 @@ public:
 	void setColor(float red, float green, float blue);
 
 	void draw(mat4 modelMatrix, DisplayClass* displayClass);
-	double RayIntersect(vec3 const& P0, vec3 const& V0);
+	virtual double RayIntersect(vec3 const& P0, vec3 const& V0){return -1;};
 
 public:
 	int nVertices;

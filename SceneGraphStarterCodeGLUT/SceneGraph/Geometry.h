@@ -23,7 +23,6 @@ public:
 	float red;
 	float green;
 	float blue;
-
 	int xIndex;
 	int zIndex;
 	float rotation;

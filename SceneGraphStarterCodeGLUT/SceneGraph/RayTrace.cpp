@@ -39,8 +39,6 @@ void RayTrace::ParseRayTraceFile(string rayTraceFile)
 	cout<<"Parsing ray trace configuration file..."<<endl;
 
 	string temp;
-	Camera* camera;
-
 	readFile>>temp>>image->file;
 	readFile>>temp>>image->reso[0]>>image->reso[1];
 	readFile>>temp>>camera->eye.x>>camera->eye.y>>camera->eye.z;
@@ -102,9 +100,19 @@ void RayTrace::Main()
 	}
 }
 
+bool ShadowRayUnblocked(vec3 P1, vec3 P2)
+{
+	return false;
+}
+vec3 ReflectedRay(vec3 P1, vec3 PN, vec3 PO)
+{
+	return vec3(0, 0, 0);
+}
 // I don't know what this is, just using it temporarily
 extern SceneGraph* sceneGraph;
-void RayTrace::TraceRay(vec3 start, vec3 direction, int depth, vec3 color)
+// LOOKAT my geometry definition may be different from the geometryintersection homework
+// LOOKAT should i use vec3& color or vec3 color?
+void RayTrace::TraceRay(vec3 start, vec3 direction, int depth, vec3& color)
 {
 	vec3 ReflectedDirection;
 	vec3 RefractedDirection;
@@ -115,6 +123,8 @@ void RayTrace::TraceRay(vec3 start, vec3 direction, int depth, vec3 color)
 	vec3 RefractedColor;
 	vec3 trans;
 	vec3 TransmittedColor;
+	Geometry j;
+	vec3 N;
 
 	if(depth > MAXDEPTH)
 	{
@@ -123,16 +133,51 @@ void RayTrace::TraceRay(vec3 start, vec3 direction, int depth, vec3 color)
 	}
 	// intersect ray with all objects and find intersection point(if any)
 	// on object j that is closest to start of ray; else return nil
-	float t = sceneGraph->RayIntersect(start, direction);
+	float t = sceneGraph->RayIntersect(start, direction, j);
 	if(t < 0)
 	{
-		// if ray is parallel to any of the *light directions*?
-		// color = light_color
-		// else
-		// color = background_color
+		if(cross(direction, vec3(light->position - camera->eye)) == vec3(0, 0, 0))
+			color = light->color;
+		else
+			color = image->backgroundColor;
+		return;
 	}
 	else
 	{
 		vec3 IntersectionPoint = start + t * direction;
+		// TODO compute object j normal N at IntersectionPoint
+		if(j.material->Ks > 0)
+		{
+			ReflectedDirection = normalize(direction - 2.0f * N * dot(direction, N));
+			TraceRay(IntersectionPoint, ReflectedDirection, depth + 1, ReflectedColor);
+			spec = j.material->Ks * ReflectedColor;
+		}
+		else
+		{
+			spec = vec3(0, 0, 0);
+		}
+		if(j.material->Kt > 0)
+		{
+			// TODO compute direction of refracted ray
+			TraceRay(IntersectionPoint, RefractedDirection, depth + 1, RefractedColor);
+			refr = j.material->Kt * RefractedColor;
+		}
+		else
+		{
+			refr = vec3(0, 0, 0);
+		}
+
+		// do shadow feelers
+		// LOOKAT assume no light is inside geometry for now
+		if(/*inside(start, j)*/false)
+			color = vec3(0, 0, 0);
+		else
+		{
+			color = j.material->Ka * light->ambientColor + refr;
+			if(ShadowRayUnblocked(IntersectionPoint, light->position))
+			{
+				color = color + light->color * (j.material->Kd * vec3(j.red, j.green, j.blue) * dot(N, light->position) + spec * pow(dot(ReflectedRay(light->position, N, IntersectionPoint), camera->eye), j.material->Kn));
+			}
+		}
 	}
 }

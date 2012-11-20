@@ -20,7 +20,7 @@ public:
 	~RayTrace();
 	void ParseRayTraceFile(string rayTraceFile);
 	void Main();
-	void TraceRay(vec3 start, vec3 direction, int depth, vec3 color);
+	void TraceRay(vec3 start, vec3 direction, int depth, vec3& color);
 
 public:
 	Camera* camera;

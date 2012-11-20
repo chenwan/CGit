@@ -26,6 +26,26 @@ void Furniture::setColor(vec3 color)
 	blue = color.b;
 }
 
+double Furniture::RayIntersect(vec3 const& P0, vec3 const& V0)
+{
+	double t_os = -1, t_ws = -1, t_min = INFINITY;
+	for(unsigned int i = 0; i < primitives.size(); ++i)
+	{
+		vec4 P = inverse(transformations[i]) * vec4(P0, 1);
+		vec4 V = inverse(transformations[i]) * vec4(V0, 0);
+		t_os = primitives[i]->RayIntersect(vec3(P.x, P.y, P.z), vec3(V.x, V.y, V.z));
+		t_ws = t_os / length(vec3(V.x, V.y, V.z));
+		if((t_ws > 0) && (t_ws < t_min))
+		{
+			t_min = t_ws;
+		}
+	}
+	if(t_min < INFINITY)
+		return t_min;
+	else
+		return -1;
+}
+
 Floor::Floor()
 {
 	Box* floor = new Box();
