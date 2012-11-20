@@ -188,7 +188,7 @@ void swap(double &a, double &b)
 	a = b;
 	b = t;
 }
-double Box::RayIntersect(vec3 const& P0, vec3 const& V0)
+double Box::RayIntersect(vec3 const& P0, vec3 const& V0, vec3& N0)
 {
 	vec3 V = normalize(V0);
 	double Tnear = -INFINITY;
@@ -255,6 +255,23 @@ double Box::RayIntersect(vec3 const& P0, vec3 const& V0)
 			return -1;
 		if(Tfar < 0)
 			return -1;
+	}
+	if(Tnear > 0)
+	{
+		// calculate normal at intersection point
+		vec3 IntersectionPoint = P0 + (float)Tnear * V;
+		if((IntersectionPoint.x - 0.5f < EPSILON) && (IntersectionPoint.x - 0.5f > -EPSILON))
+			N0 = vec3(1.0f, 0.0f, 0.0f);
+		else if((IntersectionPoint.x + 0.5f < EPSILON) && (IntersectionPoint.x + 0.5f > -EPSILON))
+			N0 = vec3(-1.0f, 0.0f, 0.0f);
+		else if((IntersectionPoint.y - 0.5f < EPSILON) && (IntersectionPoint.y - 0.5f > -EPSILON))
+			N0 = vec3(0.0f, 1.0f, 0.0f);
+		else if((IntersectionPoint.y + 0.5f < EPSILON) && (IntersectionPoint.y + 0.5f > -EPSILON))
+			N0 = vec3(0.0f, -1.0f, 0.0f);
+		else if((IntersectionPoint.z - 0.5f < EPSILON) && (IntersectionPoint.z - 0.5f > -EPSILON))
+			N0 = vec3(0.0f, 0.0f, 1.0f);
+		else if((IntersectionPoint.z + 0.5f < EPSILON) && (IntersectionPoint.z + 0.5f > -EPSILON))
+			N0 = vec3(0.0f, 0.0f, -1.0f);
 	}
 	return Tnear;
 }
@@ -477,7 +494,7 @@ void Sphere::initIndices()
 	}
 }
 
-double Sphere::RayIntersect(vec3 const& P0, vec3 const& V0)
+double Sphere::RayIntersect(vec3 const& P0, vec3 const& V0, vec3& N0)
 {
 	vec3 V = normalize(V0);
 	double b = 2.0 * dot(V, P0);
@@ -490,12 +507,22 @@ double Sphere::RayIntersect(vec3 const& P0, vec3 const& V0)
 	{
 		t0 = (-b - sqrt(discriminant)) / 2.0;
 		if(t0 > 0)
+		{
+			// calculate normal at intersection point
+			vec3 IntersectionPoint = P0 + (float)t0 * V;
+			N0 = IntersectionPoint;
 			return t0;
+		}
 		else
 		{
 			t1 = (-b + sqrt(discriminant)) / 2.0;
 			if(t1 > 0)
+			{
+				// calculate normal at intersection point
+				vec3 IntersectionPoint = P0 + (float)t1 * V;
+				N0 = IntersectionPoint;
 				return t1;
+			}
 			else
 				return -1;
 		}
@@ -576,7 +603,7 @@ void Cylinder::initIndices()
 	indices[(nEdges - 1) * 3 + 2] = 2;
 }
 
-double Cylinder::RayIntersect(vec3 const& P0, vec3 const& V0)
+double Cylinder::RayIntersect(vec3 const& P0, vec3 const& V0, vec3& N0)
 {
 	vec3 V = normalize(V0);
 	double t = -1;
@@ -595,7 +622,11 @@ double Cylinder::RayIntersect(vec3 const& P0, vec3 const& V0)
 			vec3 P = P0 + vec3(t * V.x, t * V.y, t * V.z);
 			vec3 PO = P - vec3(0.0, 0.5, 0.0);
 			if(PO.x * PO.x + PO.z * PO.z < 0.25)
+			{
+				// calculate normal at intersection point
+				N0 = vec3(0.0f, 1.0f, 0.0f);
 				return t;
+			}
 		}
 	}
 	if(P0.y < -0.5)
@@ -613,7 +644,11 @@ double Cylinder::RayIntersect(vec3 const& P0, vec3 const& V0)
 			vec3 P = P0 + vec3(t * V.x, t * V.y, t * V.z);
 			vec3 PO = P - vec3(0.0, -0.5, 0.0);
 			if(PO.x * PO.x + PO.z * PO.z < 0.25)
+			{
+				// calculate normal at intersection point
+				N0 = vec3(0.0f, -1.0f, 0.0f);
 				return t;
+			}
 		}
 	}
 	// check intersection with cylinder body
@@ -642,8 +677,14 @@ double Cylinder::RayIntersect(vec3 const& P0, vec3 const& V0)
 			}
 		}
 	}
-	vec3 P = P0 + vec3(t * V.x, t * V.y, t * V.z);
+	vec3 P = P0 + (float)t * V;
 	if((P.y > 0.5) || (P.y < -0.5))
 		return -1;
+	else
+	{
+		// calculate normal at intersection point
+		N0 = vec3(P.x, 0.0f, P.z);
+		return t;
+	}
 	return t;
 }

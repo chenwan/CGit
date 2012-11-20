@@ -17,7 +17,7 @@ public:
 
 	virtual void setColor(vec3 color){};
 	virtual void draw(mat4 modelMatrix, DisplayClass* displayClass){};
-	virtual double RayIntersect(vec3 const& P0, vec3 const& V0){return -1;};
+	virtual double RayIntersect(vec3 const& P0, vec3 const& V0, vec3& N0){return -1;};
 
 public:
 	float red;

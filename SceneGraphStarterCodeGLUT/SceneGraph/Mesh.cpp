@@ -433,21 +433,20 @@ double triangleArea(vec3 const& P1, vec3 const& P2, vec3 const& P3)
 	return area;
 }
 
-// will have to get the smallest t
-double Mesh::RayIntersect(vec3 const& P0, vec3 const& V0)
+double Mesh::RayIntersect(vec3 const& P0, vec3 const& V0, vec3& N0)
 {
+	vec3 V = normalize(V0);
+	double t = -1, t_min = INFINITY;
 	for(unsigned int i = 0; i < nFaces; ++i)
 	{
 		vec3 P1 = faces[i].p1;
 		vec3 P2 = faces[i].p2;
 		vec3 P3 = faces[i].p3;
 
-		vec3 V = normalize(V0);
 		vec3 normal = normalize(cross(P2 - P1, P3 - P1));
 		if(dot(normal, V) < 0)
 			normal = -normal;
 		double denominator = dot(normal, V);
-		double t = -1;
 		if((denominator < EPSILON) && (denominator > -EPSILON))
 			t = -1;
 		else
@@ -464,11 +463,21 @@ double Mesh::RayIntersect(vec3 const& P0, vec3 const& V0)
 				double s3 = triangleArea(P, P1, P2) / s;
 				// better solution?
 				if((s1 >= 0) && (s1 <= 1) && (s2 >= 0) && (s2 <= 1) && (s3 >= 0) && (s3 <= 1) && (s1 + s2 + s3 - 1 < EPSILON) && (s1 + s2 + s3 - 1 > -EPSILON))
-					return t;
+				{
+					if(t < t_min)
+					{
+						// return normal at intersection point
+						N0 = normal;
+						t_min = t;
+					}
+				}
 				else
 					t = -1;
 			}
 		}
 	}
-	return -1;
+	if(t_min < INFINITY)
+		return t_min;
+	else
+		return -1;
 }

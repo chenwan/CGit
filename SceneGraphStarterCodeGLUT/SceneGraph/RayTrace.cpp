@@ -100,16 +100,24 @@ void RayTrace::Main()
 	}
 }
 
+// I don't know what this is, just using it temporarily
+extern SceneGraph* sceneGraph;
 bool ShadowRayUnblocked(vec3 P1, vec3 P2)
 {
-	return false;
+	vec3 P0 = P1;
+	vec3 V0 = normalize(P2 - P1);
+	Geometry j;
+	vec3 N;
+	double t = sceneGraph->RayIntersect(P0, V0, j, N);
+	if(t > 0)
+		return false;
+	else
+		return true;
 }
 vec3 ReflectedRay(vec3 P1, vec3 PN, vec3 PO)
 {
 	return vec3(0, 0, 0);
 }
-// I don't know what this is, just using it temporarily
-extern SceneGraph* sceneGraph;
 // LOOKAT my geometry definition may be different from the geometryintersection homework
 // LOOKAT should i use vec3& color or vec3 color?
 void RayTrace::TraceRay(vec3 start, vec3 direction, int depth, vec3& color)
@@ -133,7 +141,7 @@ void RayTrace::TraceRay(vec3 start, vec3 direction, int depth, vec3& color)
 	}
 	// intersect ray with all objects and find intersection point(if any)
 	// on object j that is closest to start of ray; else return nil
-	float t = sceneGraph->RayIntersect(start, direction, j);
+	double t = sceneGraph->RayIntersect(start, direction, j, N);
 	if(t < 0)
 	{
 		if(cross(direction, vec3(light->position - camera->eye)) == vec3(0, 0, 0))
@@ -144,8 +152,7 @@ void RayTrace::TraceRay(vec3 start, vec3 direction, int depth, vec3& color)
 	}
 	else
 	{
-		vec3 IntersectionPoint = start + t * direction;
-		// TODO compute object j normal N at IntersectionPoint
+		vec3 IntersectionPoint = start + (float)t * direction;
 		if(j.material->Ks > 0)
 		{
 			ReflectedDirection = normalize(direction - 2.0f * N * dot(direction, N));

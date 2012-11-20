@@ -28,7 +28,7 @@ public:
 
 	void draw(mat4 modelMatrix, DisplayClass* displayClass);
 
-	double RayIntersect(vec3 const& P0, vec3 const& V0);
+	double RayIntersect(vec3 const& P0, vec3 const& V0, vec3& N0);
 
 public:
 	unsigned int nPoints; // the number of the input basePoints or polylinePoints

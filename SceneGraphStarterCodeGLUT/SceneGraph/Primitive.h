@@ -19,7 +19,7 @@ public:
 	void setColor(float red, float green, float blue);
 
 	void draw(mat4 modelMatrix, DisplayClass* displayClass);
-	virtual double RayIntersect(vec3 const& P0, vec3 const& V0){return -1;};
+	virtual double RayIntersect(vec3 const& P0, vec3 const& V0, vec3& N0){return -1;};
 
 public:
 	int nVertices;
@@ -40,7 +40,7 @@ public:
 	void initNormals();
 	void initIndices();
 
-	double RayIntersect(vec3 const& P0, vec3 const& V0);
+	double RayIntersect(vec3 const& P0, vec3 const& V0, vec3& N0);
 };
 
 class Sphere: public Primitive
@@ -54,7 +54,7 @@ public:
 	void initIndices();
 	int CreateNSphere(int iterations);
 
-	double RayIntersect(vec3 const& P0, vec3 const& V0);
+	double RayIntersect(vec3 const& P0, vec3 const& V0, vec3& N0);
 
 public:
 	int nIterations;
@@ -70,7 +70,7 @@ public:
 	void initNormals();
 	void initIndices();
 
-	double RayIntersect(vec3 const& P0, vec3 const& V0);
+	double RayIntersect(vec3 const& P0, vec3 const& V0, vec3& N0);
 
 public:
 	int nEdges;

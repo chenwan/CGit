@@ -14,7 +14,7 @@ public:
 
 	void draw(mat4 modelMatrix, DisplayClass* displayClass);
 	void setColor(vec3 color);
-	double RayIntersect(vec3 const& P0, vec3 const& V0);
+	double RayIntersect(vec3 const& P0, vec3 const& V0, vec3& N0);
 
 public:
 	std::vector<Primitive*> primitives;
