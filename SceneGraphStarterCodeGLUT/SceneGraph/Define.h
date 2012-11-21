@@ -8,5 +8,9 @@
 #define MAXDEPTH 5
 #define EPSILON 0.0000001
 #define INFINITY 10000000
+#define AIR 1.0
+#define WATER 1.33
+#define CROWN_GLASS 1.52
+#define FLINT_GLASS 1.66
 
 #endif

@@ -12,9 +12,7 @@ public:
 	Material();
 	~Material();
 public:
-	vec3 diffuseColor;
-	float specular;
-	float reflectivity;
+	vec3 color;
 	float Kd; // diffuse reflectivity factor
 	float Ks; // specular reflectivity factor
 	float Kn; // specular Phong exponent

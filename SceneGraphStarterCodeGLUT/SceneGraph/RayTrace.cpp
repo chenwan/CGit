@@ -7,6 +7,15 @@ RayTrace::RayTrace()
 	light = new Light();
 }
 
+RayTrace::RayTrace(string rayTraceFile)
+{
+	camera = new Camera();
+	image = new Image();
+	light = new Light();
+	ParseRayTraceFile(rayTraceFile);
+	Main();
+}
+
 RayTrace::~RayTrace()
 {
 	if(camera)
@@ -24,7 +33,11 @@ RayTrace::~RayTrace()
 		delete light;
 		light = 0;
 	}
+	materials.clear();
 }
+
+// I don't know what this is, just using it temporarily
+extern SceneGraph* sceneGraph;
 
 void RayTrace::ParseRayTraceFile(string rayTraceFile)
 {
@@ -49,6 +62,19 @@ void RayTrace::ParseRayTraceFile(string rayTraceFile)
 	readFile>>temp>>light->color.r>>light->color.g>>light->color.b;
 	readFile>>temp>>light->ambientColor.r>>light->ambientColor.g>>light->ambientColor.b;
 	// read materials left
+	while(readFile>>temp)
+	{
+		Material* material = new Material();
+		readFile>>material->color.r;
+		readFile>>material->color.g;
+		readFile>>material->color.b;
+		readFile>>material->Kn;
+		readFile>>material->Ks;
+		readFile>>material->Kt;
+		readFile>>material->Kr;
+		readFile>>temp;
+		materials.push_back(material);
+	}
 
 	cout<<"FILE "<<image->file<<endl;
 	cout<<"RESO "<<image->reso[0]<<" "<<image->reso[1]<<endl;
@@ -84,6 +110,12 @@ void RayTrace::Main()
 	output.SetSize(image->reso[0], image->reso[1]);
 	output.SetBitDepth(24);
 
+	// set ray tracing materials to scenegraph geometries
+	for(unsigned int i = 0; i < sceneGraph->m_Nodes.size(); ++i)
+	{
+		sceneGraph->m_Nodes[i]->m_Geometry->material = materials[sceneGraph->m_Nodes[i]->m_Geometry->material_index - 1];
+	}
+
 	vec3 pixel = origin + vec3(0.5f, 0.5f, 0);
 	for(int y = 0; y < image->reso[1]; ++y)
 	{
@@ -97,11 +129,12 @@ void RayTrace::Main()
 			output(x, image->reso[1] - 1 - y)->Green = color.g;
 			output(x, image->reso[1] - 1 - y)->Blue = color.b;
 		}
+		pixel.y += 1.0f;
+		cout<<"Moving to line"<< y + 1 <<endl;
 	}
+	output.WriteToFile(image->file.c_str());
 }
 
-// I don't know what this is, just using it temporarily
-extern SceneGraph* sceneGraph;
 bool ShadowRayUnblocked(vec3 P1, vec3 P2)
 {
 	vec3 P0 = P1;
@@ -116,9 +149,10 @@ bool ShadowRayUnblocked(vec3 P1, vec3 P2)
 }
 vec3 ReflectedRay(vec3 P1, vec3 PN, vec3 PO)
 {
-	return vec3(0, 0, 0);
+	vec3 Ri = normalize(PO - P1);
+	vec3 Rr = normalize(Ri - 2.0f * PN * dot(Ri, PN));
+	return Rr;
 }
-// LOOKAT my geometry definition may be different from the geometryintersection homework
 // LOOKAT should i use vec3& color or vec3 color?
 void RayTrace::TraceRay(vec3 start, vec3 direction, int depth, vec3& color)
 {
@@ -166,8 +200,22 @@ void RayTrace::TraceRay(vec3 start, vec3 direction, int depth, vec3& color)
 		if(j.material->Kt > 0)
 		{
 			// TODO compute direction of refracted ray
-			TraceRay(IntersectionPoint, RefractedDirection, depth + 1, RefractedColor);
-			refr = j.material->Kt * RefractedColor;
+			float eta_1 = AIR;
+			float eta_2 = j.material->Kr;
+			float eta_12 = eta_1 / eta_2;
+			float discriminant = 1 - eta_12 * eta_12 * (1 - dot(N, direction) * dot(N, direction));
+			if(discriminant > 0)
+			{
+				RefractedDirection = normalize((-eta_12 * dot(N, direction) - sqrt(discriminant)) * N + eta_12 * direction);
+				TraceRay(IntersectionPoint, RefractedDirection, depth + 1, RefractedColor);
+				refr = j.material->Kt * RefractedColor;
+			}
+			else if(discriminant = 0)
+			{}
+			else if(discriminant < 0)
+			{
+				// reflection
+			}
 		}
 		else
 		{

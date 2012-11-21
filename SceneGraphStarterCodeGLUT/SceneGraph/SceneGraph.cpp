@@ -151,7 +151,6 @@ void SceneGraph::ParseSceneFile(string sceneFile)
 	int numPoints;
 	vec3* extrusion_basePoints;
 	vec3* surfrev_polylinePoints;
-	int material;
 
 	for(int i = 0; i < numItems; ++i)
 	{
@@ -230,7 +229,7 @@ void SceneGraph::ParseSceneFile(string sceneFile)
 			cerr<<"Cannot recognize the geometry type!"<<endl;
 			exit(1);
 		}
-		readFile>>material;
+		readFile>>geometry->material_index;
 		readFile>>geometry->xIndex>>geometry->zIndex;
 		readFile>>geometry->rotation;
 		readFile>>geometry->xScale>>geometry->yScale>>geometry->zScale;

@@ -20,6 +20,12 @@ DisplayClass *displayClass;
 // scene graph instance
 SceneGraph* sceneGraph;
 
+// ray trace file
+string rayTraceFile;
+
+// ray trace
+RayTrace* rayTrace;
+
 //Animation/transformation stuff
 clock_t old;
 
@@ -44,6 +50,7 @@ int main(int argc, char** argv) {
 	cout<<fileName<<endl;*/
 	sceneGraph = new SceneGraph();
 	sceneGraph->ParseSceneFile(argv[1]);
+	rayTraceFile = argv[2];
 
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA);
@@ -126,7 +133,8 @@ void keypress(unsigned char key, int x, int y) {
 		}
 		break;
 	case 'p':
-		//RayTrace* rayTrace = new RayTrace();
+		rayTrace = new RayTrace(rayTraceFile);
+		break;
 	case 27: // ascii code of esc key
 		if (displayClass)
 			delete displayClass;

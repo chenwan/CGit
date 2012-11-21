@@ -32,6 +32,7 @@ public:
 
 	float height;
 	Material* material;
+	int material_index;
 };
 
 #endif

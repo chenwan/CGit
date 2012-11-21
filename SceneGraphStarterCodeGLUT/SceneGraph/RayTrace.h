@@ -17,6 +17,7 @@ class RayTrace
 {
 public:
 	RayTrace();
+	RayTrace(string rayTraceFile);
 	~RayTrace();
 	void ParseRayTraceFile(string rayTraceFile);
 	void Main();
@@ -26,6 +27,7 @@ public:
 	Camera* camera;
 	Image* image;
 	Light* light;
+	vector<Material*> materials;
 	vec3 color; // returned color
 	vec3 P; // ray start position
 	vec3 D; // ray direction
