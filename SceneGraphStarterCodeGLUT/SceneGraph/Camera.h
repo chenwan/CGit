@@ -13,8 +13,7 @@ class Camera
 {
 public:
 	vec3 eye;
-	vec3 center;
-	vec3 vdir;
+	vec3 center; // vdir
 	vec3 up;
 	float fovy;
 	int height;

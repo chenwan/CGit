@@ -19,6 +19,7 @@ public:
 	float Kt; // transmittance
 	float Ka; // ambient factor
 	float Kr; // index of refraction
+	float reflectivity_parameter;
 };
 
 #endif

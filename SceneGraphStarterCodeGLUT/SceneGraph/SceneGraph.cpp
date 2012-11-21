@@ -130,7 +130,7 @@ void SceneGraph::ParseSceneFile(string sceneFile)
 		readFile.close();
 	}
 
-	cout<<"Start parsing configuration file."<<endl;
+	cout<<"Start parsing scene graph configuration file."<<endl;
 
 	int xSize, zSize;
 	readFile>>xSize>>zSize>>numItems;
@@ -237,7 +237,7 @@ void SceneGraph::ParseSceneFile(string sceneFile)
 		this->addNode(geometryNode);
 	}
 
-	cout<<"Finish parsing configuration file."<<endl;
+	cout<<"Finish parsing scene graph configuration file."<<endl;
 	readFile.clear();
 	readFile.close();
 }
@@ -255,8 +255,8 @@ double SceneGraph::RayIntersect(vec3 const& P0, vec3 const& V0, Geometry& j, vec
 		t_ws = t_os / length(vec3(V.x, V.y, V.z));
 		if((t_ws > 0) && (t_ws < t_min))
 		{
-			N_ws = transpose(inverse(m_Nodes[i]->m_Transformation)) * vec4(N_os, 0);
-			N = vec3(N_ws.x, N_ws.y, N_ws.z);
+			N_ws = transpose(inverse(m_Nodes[i]->m_Transformation)) * vec4(normalize(N_os), 0);
+			N = normalize(vec3(N_ws.x, N_ws.y, N_ws.z));
 			t_min = t_ws;
 			j = *m_Nodes[i]->m_Geometry;
 		}

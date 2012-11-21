@@ -5,7 +5,7 @@
 #define DEFAULT_WIDTH 640
 #define DEFAULT_HEIGHT 480
 #define PI 3.1415926
-#define MAXDEPTH 5
+#define MAXDEPTH 1
 #define EPSILON 0.0000001
 #define INFINITY 10000000
 #define AIR 1.0

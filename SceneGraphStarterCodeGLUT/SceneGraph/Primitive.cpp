@@ -520,7 +520,7 @@ double Sphere::RayIntersect(vec3 const& P0, vec3 const& V0, vec3& N0)
 			{
 				// calculate normal at intersection point
 				vec3 IntersectionPoint = P0 + (float)t1 * V;
-				N0 = IntersectionPoint;
+				N0 = normalize(IntersectionPoint);
 				return t1;
 			}
 			else
@@ -684,7 +684,7 @@ double Cylinder::RayIntersect(vec3 const& P0, vec3 const& V0, vec3& N0)
 	else
 	{
 		// calculate normal at intersection point
-		N0 = vec3(P.x, 0.0f, P.z);
+		N0 = normalize(vec3(P.x, 0.0f, P.z));
 		return t;
 	}
 	return t;

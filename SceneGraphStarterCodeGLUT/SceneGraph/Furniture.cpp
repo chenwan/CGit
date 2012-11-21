@@ -38,8 +38,8 @@ double Furniture::RayIntersect(vec3 const& P0, vec3 const& V0, vec3& N0)
 		t_ws = t_os / length(vec3(V.x, V.y, V.z));
 		if((t_ws > 0) && (t_ws < t_min))
 		{
-			vec4 N_ws = transpose(inverse(transformations[i])) * vec4(N_os, 0);
-			N0 = vec3(N_ws.x, N_ws.y, N_ws.z);
+			vec4 N_ws = transpose(inverse(transformations[i])) * vec4(normalize(N_os), 0);
+			N0 = normalize(vec3(N_ws.x, N_ws.y, N_ws.z));
 			t_min = t_ws;
 		}
 	}
@@ -265,8 +265,9 @@ void Lamp::initPrimitives()
 {
 	Cylinder* cylinder = new Cylinder();
 	Sphere* sphere = new Sphere();
+	Box* box = new Box();
 	primitives.push_back(cylinder);
-	primitives.push_back(cylinder);
+	primitives.push_back(box);
 	primitives.push_back(sphere);
 	primitives.push_back(sphere);
 	primitives.push_back(sphere);
