@@ -83,7 +83,7 @@ void Floor::initPrimitives()
 void Floor::initTransformations()
 {
 	mat4 view = mat4(1.0f);
-	view = translate(view, vec3(0.0f, -0.1f, 0.0f));
+	view = translate(view, vec3(0.0f, -0.5f, 0.0f));
 	view = scale(view, vec3((float)xSize * 2.0f, 0.2f, (float)zSize * 2.0f));
 	transformations.push_back(view);	
 }

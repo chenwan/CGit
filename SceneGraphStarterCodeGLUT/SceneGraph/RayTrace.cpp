@@ -146,6 +146,7 @@ bool ShadowRayUnblocked(vec3 P1, vec3 P2) // ShadowRayUnblocked(IntersectionPoin
 	//return true;
 	vec3 P0 = P1;
 	vec3 V0 = normalize(P2 - P1);
+	P0 = P0 + 0.0001f * V0;
 	Geometry block_j;
 	vec3 N;
 	double t = sceneGraph_global->RayIntersect(P0, V0, block_j, N);
@@ -199,7 +200,7 @@ void RayTrace::TraceRay(vec3 start, vec3 direction, int depth, vec3& color)
 			N = -N;
 		if(j.material->Ks > 0)
 		{
-			ReflectedDirection = normalize(normalize(direction) - 2.0f * normalize(N) * dot(normalize(direction), normalize(N)));
+			ReflectedDirection = ReflectedRay(light->position, normalize(N), IntersectionPoint);
 			TraceRay(IntersectionPoint, ReflectedDirection, depth + 1, ReflectedColor);
 			spec = j.material->Ks * ReflectedColor;
 		}

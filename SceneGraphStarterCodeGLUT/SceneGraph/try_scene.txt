@@ -1,0 +1,14 @@
+8 8 2
+
+lamp
+2
+0 0
+45
+8 8 8
+
+mesh
+testextrusion1.dat
+3
+5 2
+90
+2 2 2
