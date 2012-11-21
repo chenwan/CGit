@@ -1,5 +1,7 @@
 #include "RayTrace.h"
 
+extern SceneGraph* sceneGraph_global;
+
 RayTrace::RayTrace()
 {
 	camera = new Camera();
@@ -35,9 +37,6 @@ RayTrace::~RayTrace()
 	}
 	materials.clear();
 }
-
-// I don't know what this is, just using it temporarily
-extern SceneGraph* sceneGraph;
 
 void RayTrace::ParseRayTraceFile(string rayTraceFile)
 {
@@ -85,6 +84,10 @@ void RayTrace::ParseRayTraceFile(string rayTraceFile)
 	cout<<"LPOS "<<light->position.x<<" "<<light->position.y<<" "<<light->position.z<<endl;
 	cout<<"LCOL "<<light->color.r<<" "<<light->color.g<<" "<<light->color.b<<endl;
 	cout<<"ACOL "<<light->ambientColor.r<<" "<<light->ambientColor.g<<" "<<light->ambientColor.b<<endl;
+	for(unsigned int i = 0; i < materials.size(); ++i)
+	{
+		cout<<"MAT"<<i + 1<<" COLOR "<<materials[i]->color.r<<" "<<materials[i]->color.g<<" "<<materials[i]->color.b<<" Kn "<<materials[i]->Kn<<" Ks "<<materials[i]->Ks<<" Kt "<<materials[i]->Kt<<" Kr "<<materials[i]->Kr<<endl;
+	}
 }
 
 void RayTrace::Main()
@@ -111,9 +114,9 @@ void RayTrace::Main()
 	output.SetBitDepth(24);
 
 	// set ray tracing materials to scenegraph geometries
-	for(unsigned int i = 0; i < sceneGraph->m_Nodes.size(); ++i)
+	for(unsigned int i = 1; i < sceneGraph_global->m_Nodes.size(); ++i)
 	{
-		sceneGraph->m_Nodes[i]->m_Geometry->material = materials[sceneGraph->m_Nodes[i]->m_Geometry->material_index - 1];
+		sceneGraph_global->m_Nodes[i]->m_Geometry->material = materials[sceneGraph_global->m_Nodes[i]->m_Geometry->material_index - 1];
 	}
 
 	vec3 pixel = origin + vec3(0.5f, 0.5f, 0);
@@ -141,7 +144,7 @@ bool ShadowRayUnblocked(vec3 P1, vec3 P2)
 	vec3 V0 = normalize(P2 - P1);
 	Geometry j;
 	vec3 N;
-	double t = sceneGraph->RayIntersect(P0, V0, j, N);
+	double t = sceneGraph_global->RayIntersect(P0, V0, j, N);
 	if(t > 0)
 		return false;
 	else
@@ -175,7 +178,7 @@ void RayTrace::TraceRay(vec3 start, vec3 direction, int depth, vec3& color)
 	}
 	// intersect ray with all objects and find intersection point(if any)
 	// on object j that is closest to start of ray; else return nil
-	double t = sceneGraph->RayIntersect(start, direction, j, N);
+	double t = sceneGraph_global->RayIntersect(start, direction, j, N);
 	if(t < 0)
 	{
 		if(cross(direction, vec3(light->position - camera->eye)) == vec3(0, 0, 0))

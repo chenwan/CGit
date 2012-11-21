@@ -18,7 +18,7 @@ using namespace std;
 DisplayClass *displayClass;
 
 // scene graph instance
-SceneGraph* sceneGraph;
+SceneGraph* sceneGraph_global;
 
 // ray trace file
 string rayTraceFile;
@@ -48,8 +48,8 @@ int main(int argc, char** argv) {
 			strcat_s(fileName, " ");
 	}
 	cout<<fileName<<endl;*/
-	sceneGraph = new SceneGraph();
-	sceneGraph->ParseSceneFile(argv[1]);
+	sceneGraph_global = new SceneGraph();
+	sceneGraph_global->ParseSceneFile(argv[1]);
 	rayTraceFile = argv[2];
 
 	glutInit(&argc, argv);
@@ -78,58 +78,58 @@ void keypress(unsigned char key, int x, int y) {
 		exit(0);
 		break;
 	case 'n': // select the next node in the preorder traversal
-		sceneGraph->previousNode = sceneGraph->currentNode;
-		sceneGraph->previousNode->color = sceneGraph->previousNode->tColor;
-		sceneGraph->currentNode = sceneGraph->nextNode(sceneGraph->currentNode);
-		sceneGraph->currentNode->tColor = sceneGraph->currentNode->color;
-		sceneGraph->currentNode->color = vec3(1.0, 1.0, 1.0);
+		sceneGraph_global->previousNode = sceneGraph_global->currentNode;
+		sceneGraph_global->previousNode->color = sceneGraph_global->previousNode->tColor;
+		sceneGraph_global->currentNode = sceneGraph_global->nextNode(sceneGraph_global->currentNode);
+		sceneGraph_global->currentNode->tColor = sceneGraph_global->currentNode->color;
+		sceneGraph_global->currentNode->color = vec3(1.0, 1.0, 1.0);
 		break;
 	case 'a': // translate the selected node (and by nature of the scene graph, its children) 
 		      // along the negative x-axis half a unit
-		sceneGraph->currentNode->Update(1, -0.5);
+		sceneGraph_global->currentNode->Update(1, -0.5);
 		break;
 	case 'd': // translate the selected node along the positive x-axis by half a unit
-		sceneGraph->currentNode->Update(1, 0.5);
+		sceneGraph_global->currentNode->Update(1, 0.5);
 		break;
 	case 'w': // translate the selected node along the positive z-axis half a unit, and I've changed it to negative z-axis
-		sceneGraph->currentNode->Update(2, -0.5);
+		sceneGraph_global->currentNode->Update(2, -0.5);
 		break;
 	case 's': // translate the selected node along the negative z-axis half a unit, and I've changed it to positive z-axis
-		sceneGraph->currentNode->Update(2, 0.5);
+		sceneGraph_global->currentNode->Update(2, 0.5);
 		break;
 	case 'x': // increase scale in the x-axis by 0.5
-		sceneGraph->currentNode->xScale += 0.5f;
+		sceneGraph_global->currentNode->xScale += 0.5f;
 		break;
 	case 'X': // decrease scale in the x-axis by 0.5
-		sceneGraph->currentNode->xScale -= 0.5f;
+		sceneGraph_global->currentNode->xScale -= 0.5f;
 		break;
 	case 'y': // increase scale in the y-axis by 0.5
-		sceneGraph->currentNode->yScale += 0.5f;
-		sceneGraph->currentNode->Update(4, 0);
+		sceneGraph_global->currentNode->yScale += 0.5f;
+		sceneGraph_global->currentNode->Update(4, 0);
 		break;
 	case 'Y': // decrease scale in the y-axis by 0.5
-		sceneGraph->currentNode->yScale -= 0.5f;
-		sceneGraph->currentNode->Update(4, 0);
+		sceneGraph_global->currentNode->yScale -= 0.5f;
+		sceneGraph_global->currentNode->Update(4, 0);
 		break;
 	case 'z': // increase scale in the z-axis by 0.5
-		sceneGraph->currentNode->zScale += 0.5f;
+		sceneGraph_global->currentNode->zScale += 0.5f;
 		break;
 	case 'Z': // decrease scale in the z-axis by 0.5
-		sceneGraph->currentNode->zScale -= 0.5f;
+		sceneGraph_global->currentNode->zScale -= 0.5f;
 		break;
 	case 'r': // increase the rotation of the selected node by 10 degrees
-		sceneGraph->currentNode->Update(3, 10);
+		sceneGraph_global->currentNode->Update(3, 10);
 		break;
 	case 'R': // decrease the rotation of the selected node by 10 degrees
-		sceneGraph->currentNode->Update(3, -10);
+		sceneGraph_global->currentNode->Update(3, -10);
 		break;
 	case 'e': // remove this node and all its children from the graph,
 		      // then select the next node in the preorder traversal
-		if(!sceneGraph->currentNode->IsRootNode())
+		if(!sceneGraph_global->currentNode->IsRootNode())
 		{
-			sceneGraph->deleteNode(sceneGraph->currentNode);
+			sceneGraph_global->deleteNode(sceneGraph_global->currentNode);
 			// this is not preorder traversal
-			sceneGraph->currentNode = sceneGraph->getRootNode();
+			sceneGraph_global->currentNode = sceneGraph_global->getRootNode();
 		}
 		break;
 	case 'p':
@@ -155,7 +155,7 @@ void display() {
 	displayClass->rotation += 150 * (static_cast<float>(newTime - old) / static_cast<float>(CLOCKS_PER_SEC));
 
 	//displayClass->redraw();
-	sceneGraph->draw(displayClass);
+	sceneGraph_global->draw(displayClass);
 
 	glutSwapBuffers();
 	old = newTime;
