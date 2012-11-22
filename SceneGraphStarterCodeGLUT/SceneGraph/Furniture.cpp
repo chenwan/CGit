@@ -36,7 +36,7 @@ double Furniture::RayIntersect(vec3 const& P0, vec3 const& V0, vec3& N0)
 		vec4 V = inverse(transformations[i]) * vec4(V0, 0);
 		t_os = primitives[i]->RayIntersect(vec3(P.x, P.y, P.z), vec3(V.x, V.y, V.z), N_os);
 		t_ws = t_os / length(vec3(V.x, V.y, V.z));
-		if((t_ws > 0) && (t_ws < t_min))
+		if((t_ws > EPSILON) && (t_ws < t_min))
 		{
 			vec4 N_ws = transpose(inverse(transformations[i])) * vec4(normalize(N_os), 0);
 			N0 = normalize(vec3(N_ws.x, N_ws.y, N_ws.z));

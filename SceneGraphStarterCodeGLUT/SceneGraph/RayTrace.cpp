@@ -136,16 +136,17 @@ void RayTrace::Main()
 			output(x, image->reso[1] - 1 - y)->Blue = color.b * 255.0f;
 		}
 		pixel.y += 1.0f;
-		cout<<"Moving to line"<< y + 1 <<endl;
+		cout<<"Moving to line "<< y + 1 <<endl;
 	}
 	output.WriteToFile(image->file.c_str());
 }
 
 bool ShadowRayUnblocked(vec3 P1, vec3 P2) // ShadowRayUnblocked(IntersectionPoint, light->position)
 {
-	//return true;
+	// return true;
 	vec3 P0 = P1;
 	vec3 V0 = normalize(P2 - P1);
+	// make sure it doesn't intersect itself
 	P0 = P0 + 0.0001f * V0;
 	Geometry block_j;
 	vec3 N;

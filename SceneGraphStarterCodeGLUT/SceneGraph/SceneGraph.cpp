@@ -253,7 +253,7 @@ double SceneGraph::RayIntersect(vec3 const& P0, vec3 const& V0, Geometry& j, vec
 		vec4 V = inverse(m_Nodes[i]->m_Transformation) * vec4(V0, 0);
 		t_os = m_Nodes[i]->m_Geometry->RayIntersect(vec3(P.x, P.y, P.z), vec3(V.x, V.y, V.z), N_os);
 		t_ws = t_os / length(vec3(V.x, V.y, V.z));
-		if((t_ws > 0) && (t_ws < t_min))
+		if((t_ws > EPSILON) && (t_ws < t_min))
 		{
 			N_ws = transpose(inverse(m_Nodes[i]->m_Transformation)) * vec4(normalize(N_os), 0);
 			N = normalize(vec3(N_ws.x, N_ws.y, N_ws.z));
